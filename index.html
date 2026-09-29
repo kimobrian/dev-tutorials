@@ -25,7 +25,7 @@
   --teal:#2dd4bf;   --teal-dim:rgba(45,212,191,.1);
   --rust:#e8622a;   --rust-dim:rgba(232,98,42,.1);
   --amber:#f59e0b;  --amber-dim:rgba(245,158,11,.1);
-  --sky:#38bdf8;    --sky-dim:rgba(56,189,248,.1);--purple:#818cf8;--purple-dim:rgba(129,140,248,.1);
+  --sky:#38bdf8;    --sky-dim:rgba(56,189,248,.1);--purple:#818cf8;--purple-dim:rgba(129,140,248,.1);--php:#9089d6;--php-dim:rgba(144,137,214,.1);--slate:#94a3b8;--slate-dim:rgba(148,163,184,.1);
   --font:'Inter',sans-serif;--display:'Syne',sans-serif;--mono:'IBM Plex Mono',monospace;
   --radius:12px;
 }
@@ -75,6 +75,8 @@ nav a:hover{color:var(--text);background:var(--surface2)}
 .tut-card.system-design::before{background:linear-gradient(90deg,var(--sky),#7dd3fc)}
 .tut-card.react-routing::before{background:linear-gradient(90deg,var(--pink),#d946ef)}
 .tut-card.fullstack-rr::before{background:linear-gradient(90deg,var(--purple),#a5b4fc)}
+.tut-card.php::before{background:linear-gradient(90deg,var(--php),#ff5d4e)}
+.tut-card.software-engineering::before{background:linear-gradient(90deg,var(--slate),#cbd5e1)}
 .card-body{padding:1.35rem;flex:1}
 .card-icon{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:19px;margin-bottom:.875rem}
 .devops    .card-icon{background:var(--green-dim);  border:1px solid rgba(74,222,128,.2)}
@@ -93,6 +95,8 @@ nav a:hover{color:var(--text);background:var(--surface2)}
 .system-design .card-icon{background:var(--sky-dim);border:1px solid rgba(56,189,248,.2)}
 .react-routing .card-icon{background:var(--pink-dim);border:1px solid rgba(232,121,249,.2)}
 .fullstack-rr  .card-icon{background:var(--purple-dim);border:1px solid rgba(129,140,248,.2)}
+.php           .card-icon{background:var(--php-dim);   border:1px solid rgba(144,137,214,.2)}
+.software-engineering .card-icon{background:var(--slate-dim);border:1px solid rgba(148,163,184,.2)}
 .card-label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.35rem}
 .devops    .card-label{color:var(--green)}
 .aws       .card-label{color:var(--orange)}
@@ -110,6 +114,8 @@ nav a:hover{color:var(--text);background:var(--surface2)}
 .system-design .card-label{color:var(--sky)}
 .react-routing .card-label{color:var(--pink)}
 .fullstack-rr  .card-label{color:var(--purple)}
+.php           .card-label{color:var(--php)}
+.software-engineering .card-label{color:var(--slate)}
 .card-title{font-family:var(--display);font-weight:700;font-size:1.05rem;color:var(--text);line-height:1.25;margin-bottom:.55rem;letter-spacing:-.02em}
 .card-desc{font-size:12.5px;color:var(--text2);line-height:1.65;margin-bottom:1rem}
 .card-tags{display:flex;flex-wrap:wrap;gap:.3rem}
@@ -134,6 +140,8 @@ nav a:hover{color:var(--text);background:var(--surface2)}
 .system-design .card-cta{background:var(--sky-dim);color:var(--sky);    border:1px solid rgba(56,189,248,.25)}
 .react-routing .card-cta{background:var(--pink-dim);color:var(--pink);  border:1px solid rgba(232,121,249,.25)}
 .fullstack-rr  .card-cta{background:var(--purple-dim);color:var(--purple);border:1px solid rgba(129,140,248,.25)}
+.php           .card-cta{background:var(--php-dim);   color:var(--php);   border:1px solid rgba(144,137,214,.25)}
+.software-engineering .card-cta{background:var(--slate-dim);color:var(--slate);border:1px solid rgba(148,163,184,.25)}
 .tut-card:hover .card-cta{filter:brightness(1.15)}
 /* FEATURES */
 .features{padding:clamp(2rem,4vw,3rem) clamp(1.5rem,5vw,4rem);max-width:1180px;margin:0 auto;border-top:1px solid var(--border)}
@@ -177,8 +185,8 @@ footer a{color:var(--text2);text-decoration:none}
   <h1>Build real things.<br><em>Learn by doing.</em></h1>
   <p>Production-quality tutorials covering backend engineering, cloud infrastructure, frontend, systems programming, and CS fundamentals. Every section has working code, real projects, and concepts explained the way engineers actually use them.</p>
   <div class="hero-stats">
-    <div class="hero-stat"><div class="hero-stat-value">17</div><div class="hero-stat-label">Tutorials</div></div>
-    <div class="hero-stat"><div class="hero-stat-value">310+</div><div class="hero-stat-label">Topics covered</div></div>
+    <div class="hero-stat"><div class="hero-stat-value">19</div><div class="hero-stat-label">Tutorials</div></div>
+    <div class="hero-stat"><div class="hero-stat-value">340+</div><div class="hero-stat-label">Topics covered</div></div>
     <div class="hero-stat"><div class="hero-stat-value">100%</div><div class="hero-stat-label">Free &amp; offline</div></div>
   </div>
 </section>
@@ -246,6 +254,12 @@ footer a{color:var(--text2);text-decoration:none}
         <div class="card-footer"><div class="card-meta"><span class="card-stat">📖 27 chapters</span><span class="card-stat">⏱ ~16 hrs</span></div><span class="card-cta">Read →</span></div>
       </a>
 
+
+      <a href="php/index.html" class="tut-card php">
+        <div class="card-body"><div class="card-icon">🐘</div><div class="card-label">PHP &amp; Laravel</div><div class="card-title">PHP &amp; Laravel: Zero to API</div><div class="card-desc">Plain PHP fundamentals, a database-backed API built from scratch — then Laravel from beginner to advanced: Eloquent, Sanctum auth, queues, Socialite OAuth, and testing.</div><div class="card-tags"><span class="tag">PHP</span><span class="tag">Laravel</span><span class="tag">Eloquent</span><span class="tag">Sanctum</span><span class="tag">Queues</span><span class="tag">REST API</span></div></div>
+        <div class="card-footer"><div class="card-meta"><span class="card-stat">📖 20+ chapters</span><span class="card-stat">⏱ ~14 hrs</span></div><span class="card-cta">Read →</span></div>
+      </a>
+
       </a>
     </div>
   </div>
@@ -272,6 +286,11 @@ footer a{color:var(--text2);text-decoration:none}
       <a href="system-design/index.html" class="tut-card system-design">
         <div class="card-body"><div class="card-icon">🏗️</div><div class="card-label">System Design</div><div class="card-title">System Design — The Complete Guide</div><div class="card-desc">Design scalable distributed systems from scratch. Load balancing, caching, databases at scale, message queues, microservices, consistency patterns, and real architecture case studies.</div><div class="card-tags"><span class="tag">Scalability</span><span class="tag">Load Balancing</span><span class="tag">Caching</span><span class="tag">Microservices</span><span class="tag">CAP Theorem</span><span class="tag">Distributed Systems</span></div></div>
         <div class="card-footer"><div class="card-meta"><span class="card-stat">📖 18+ chapters</span><span class="card-stat">⏱ ~14 hrs</span></div><span class="card-cta">Read →</span></div>
+      </a>
+
+      <a href="software-engineering/index.html" class="tut-card software-engineering">
+        <div class="card-body"><div class="card-icon">🏛️</div><div class="card-label">Software Engineering</div><div class="card-title">Software Engineering — The Complete Guide</div><div class="card-desc">Engineering principles that outlast any framework — SOLID, DRY, design patterns (GoF), clean architecture, refactoring, code review, testing strategy, technical debt management, and professional engineering practices.</div><div class="card-tags"><span class="tag">SOLID</span><span class="tag">Design Patterns</span><span class="tag">Clean Architecture</span><span class="tag">Refactoring</span><span class="tag">Testing</span><span class="tag">Tech Debt</span></div></div>
+        <div class="card-footer"><div class="card-meta"><span class="card-stat">📖 20+ chapters</span><span class="card-stat">⏱ ~14 hrs</span></div><span class="card-cta">Read →</span></div>
       </a>
     </div>
   </div>
@@ -329,6 +348,8 @@ footer a{color:var(--text2);text-decoration:none}
 ├── prisma/index.html       ├── trpc/index.html
 ├── rust/index.html         ├── dsa/index.html
 ├── react-routing/index.html    ├── fullstack-rr/index.html
+├── php/index.html
+├── software-engineering/index.html
 ├── system-design/index.html└── databases/index.html</pre>
         </div>
         <div class="callout green" style="margin-top:.6rem"><strong>📦 Fuse.js is bundled.</strong> Replace the CDN script tag in each tutorial with <code>&lt;script src="../vendor/fuse.min.js"&gt;&lt;/script&gt;</code> for fully offline search.</div>

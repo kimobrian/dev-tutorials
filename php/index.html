@@ -1,0 +1,3942 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PHP & Laravel — Zero to API</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.6.2/fuse.min.js"></script>
+<style>
+:root{
+  --bg:#0a0d12;
+  --panel:#10141b;
+  --panel-2:#161b24;
+  --border:#232a35;
+  --text:#dde3ec;
+  --muted:#8893a3;
+  --php:#9089d6;
+  --php-soft:#9089d61f;
+  --laravel:#ff6b52;
+  --laravel-soft:#ff6b521f;
+  --accent:#f0b94d;
+  --code-bg:#0d1117;
+  --good:#5fd0a0;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:"Segoe UI", system-ui, -apple-system, sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  line-height:1.65;
+}
+a{color:var(--accent); text-decoration:none;}
+a:hover{text-decoration:underline;}
+::-webkit-scrollbar{width:10px; height:10px;}
+::-webkit-scrollbar-thumb{background:var(--border); border-radius:6px;}
+::-webkit-scrollbar-track{background:transparent;}
+
+/* ===== Layout ===== */
+.app{display:flex; min-height:100vh;}
+
+/* ===== Sidebar ===== */
+.sidebar{
+  width:300px; flex-shrink:0; background:var(--panel);
+  border-right:1px solid var(--border);
+  height:100vh; overflow-y:auto; position:sticky; top:0;
+  padding:22px 16px 40px;
+}
+.brand{
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size:1.55rem; font-weight:800; margin:0 4px 22px; letter-spacing:0.3px;
+}
+.brand .accent{color:var(--accent); font-style:italic; font-weight:600;}
+.brand .laravel-word{color:var(--laravel); font-style:italic; font-weight:600;}
+
+.side-label{
+  font-size:0.68rem; text-transform:uppercase; letter-spacing:2.5px;
+  color:var(--muted); font-weight:700; margin:0 6px 8px;
+}
+.search-box{position:relative; margin-bottom:22px;}
+.search-box input{
+  width:100%; padding:10px 12px; border-radius:8px;
+  border:1px solid var(--border); background:var(--code-bg);
+  color:var(--text); font-size:0.88rem; outline:none;
+}
+.search-box input:focus{border-color:var(--accent);}
+.search-results{
+  position:absolute; top:calc(100% + 6px); left:0; right:0;
+  background:var(--panel-2); border:1px solid var(--border);
+  border-radius:8px; max-height:340px; overflow-y:auto; z-index:60;
+  display:none; box-shadow:0 14px 32px rgba(0,0,0,0.55);
+}
+.search-results.show{display:block;}
+.search-results .res-item{padding:10px 12px; border-bottom:1px solid var(--border); cursor:pointer; font-size:0.85rem;}
+.search-results .res-item:last-child{border-bottom:none;}
+.search-results .res-item:hover{background:var(--php-soft);}
+.search-results .res-track{font-size:0.68rem; text-transform:uppercase; letter-spacing:1.5px; color:var(--muted);}
+.search-results .res-title{font-weight:600;}
+.search-results .res-empty{padding:12px; color:var(--muted); font-size:0.85rem;}
+
+/* ===== Search modal ===== */
+.search-modal-overlay{
+  position:fixed; inset:0; background:rgba(5,7,11,0.65); backdrop-filter:blur(2px);
+  z-index:200; display:none; align-items:flex-start; justify-content:center; padding:10vh 20px 20px;
+}
+.search-modal-overlay.show{display:flex;}
+.search-modal{
+  width:100%; max-width:680px; max-height:74vh; background:var(--panel);
+  border:1px solid var(--border); border-radius:14px; overflow:hidden;
+  display:flex; flex-direction:column; box-shadow:0 24px 60px rgba(0,0,0,0.55);
+}
+.search-modal-header{
+  display:flex; align-items:center; gap:10px; padding:14px 16px; border-bottom:1px solid var(--border);
+}
+.search-modal-header input{
+  flex:1; background:none; border:none; outline:none; color:var(--text); font-size:1rem;
+}
+.search-modal-header .sm-esc{
+  font-size:0.7rem; color:var(--muted); border:1px solid var(--border); border-radius:6px; padding:2px 6px;
+}
+.search-modal-body{overflow-y:auto; padding:8px;}
+.sm-result{
+  display:block; padding:12px 14px; border-radius:10px; cursor:pointer; margin-bottom:4px;
+}
+.sm-result:hover, .sm-result.active{background:var(--panel-2);}
+.sm-result-head{display:flex; align-items:center; gap:10px; margin-bottom:6px;}
+.sm-result-title{font-weight:700; font-size:0.95rem;}
+.sm-result-badge{
+  font-size:0.64rem; font-weight:800; letter-spacing:1.5px; text-transform:uppercase;
+  padding:3px 7px; border-radius:5px; flex-shrink:0;
+}
+.sm-result-badge.php{background:var(--php-soft); color:var(--php);}
+.sm-result-badge.laravel{background:var(--laravel-soft); color:var(--laravel);}
+.sm-snippet{
+  font-size:0.83rem; color:var(--muted); line-height:1.55;
+  font-family:'Fira Code', Consolas, Monaco, monospace; margin-top:4px;
+}
+.sm-snippet + .sm-snippet{margin-top:8px;}
+.sm-snippet mark, .sm-result-title mark{
+  background:var(--accent); color:#1a1306; border-radius:3px; padding:0 2px; font-style:normal;
+}
+.sm-empty{padding:36px 16px; text-align:center; color:var(--muted); font-size:0.92rem;}
+.sm-hint{padding:36px 16px; text-align:center; color:var(--muted); font-size:0.88rem;}
+
+.nav-home{
+  display:flex; align-items:center; gap:10px;
+  padding:10px 12px; border-radius:9px; color:var(--text);
+  font-weight:600; font-size:0.92rem; margin-bottom:22px;
+  border:1px solid var(--border); cursor:pointer;
+}
+.nav-home:hover{border-color:var(--accent); text-decoration:none;}
+.nav-home.active{border-color:var(--accent); background:var(--accent)14; color:var(--accent);}
+
+.progress-wrap{margin-bottom:24px;}
+.progress-text{font-size:0.8rem; color:var(--muted); margin:4px 6px 8px;}
+.progress-bar{height:6px; border-radius:4px; background:var(--code-bg); overflow:hidden; margin:0 6px;}
+.progress-fill{height:100%; background:linear-gradient(90deg, var(--php), var(--laravel)); border-radius:4px; transition:width .3s;}
+
+.track-group{margin-bottom:6px;}
+.track-head{
+  display:flex; align-items:center; gap:10px; width:100%;
+  padding:9px 10px; border-radius:8px; cursor:pointer;
+  background:none; border:none; color:var(--text); font-weight:700; font-size:0.92rem;
+  text-align:left;
+}
+.track-head:hover{background:var(--panel-2);}
+.track-head .dot{width:9px; height:9px; border-radius:50%; flex-shrink:0;}
+.track-head.php .dot{background:var(--php);}
+.track-head.laravel .dot{background:var(--laravel);}
+.track-head .chev{margin-left:auto; color:var(--muted); font-size:0.75rem; transition:transform .15s;}
+.track-head.collapsed .chev{transform:rotate(-90deg);}
+
+.track-list{display:flex; flex-direction:column; gap:1px; padding:4px 0 10px 4px; overflow:hidden;}
+.track-list.collapsed{display:none;}
+.track-list a{
+  display:flex; gap:10px; align-items:baseline; padding:7px 10px 7px 24px;
+  border-radius:7px; color:var(--text); font-size:0.86rem; cursor:pointer;
+}
+.track-list a:hover{background:var(--panel-2); text-decoration:none;}
+.track-list a.active{color:var(--text);}
+.track-list a.active.php-active{background:var(--php-soft); border-left:3px solid var(--php); padding-left:21px;}
+.track-list a.active.laravel-active{background:var(--laravel-soft); border-left:3px solid var(--laravel); padding-left:21px;}
+.track-list a .num{color:var(--muted); font-size:0.76rem; min-width:24px; flex-shrink:0;}
+.track-list a .check{margin-left:auto; color:var(--good); font-size:0.8rem; flex-shrink:0; opacity:0;}
+.track-list a.done .check{opacity:1;}
+
+/* ===== Main ===== */
+.main{flex:1; min-width:0;}
+.topbar{
+  display:flex; justify-content:space-between; align-items:center;
+  padding:14px 32px; border-bottom:1px solid var(--border);
+  position:sticky; top:0; background:var(--bg)cc; backdrop-filter:blur(6px); z-index:20;
+}
+.topbar .crumb{font-size:0.82rem; color:var(--muted);}
+.topbar .crumb b{color:var(--text);}
+.toggle-btn{
+  background:var(--panel-2); border:1px solid var(--border); color:var(--text);
+  padding:8px 14px; border-radius:8px; cursor:pointer; font-size:0.85rem;
+}
+.toggle-btn:hover{border-color:var(--accent);}
+.menu-toggle{display:none;}
+
+/* ===== Home page ===== */
+.home{max-width:1080px; margin:0 auto; padding:56px 32px 90px;}
+.home-eyebrow{
+  font-size:0.75rem; letter-spacing:3px; text-transform:uppercase; color:var(--muted);
+  margin:0 0 14px; font-weight:700;
+}
+.home h1{
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size:3.4rem; line-height:1.18; margin:0 0 22px; font-weight:800;
+}
+.home h1 .it{font-style:italic; color:var(--laravel); font-weight:700;}
+.home .lede{font-size:1.12rem; color:var(--muted); max-width:680px; margin:0 0 40px;}
+
+.track-cards{display:grid; grid-template-columns:repeat(2, 1fr); gap:18px; margin-bottom:54px;}
+.track-card{
+  background:var(--panel); border:1px solid var(--border); border-radius:14px;
+  padding:24px; border-top:3px solid var(--border); cursor:pointer; transition:border-color .15s, transform .15s;
+}
+.track-card:hover{transform:translateY(-2px);}
+.track-card.php{border-top-color:var(--php);}
+.track-card.laravel{border-top-color:var(--laravel);}
+.track-card .emoji{font-size:1.8rem; margin-bottom:10px; display:block;}
+.track-card h3{margin:0 0 8px; font-size:1.25rem; font-family:Georgia, serif;}
+.track-card p{margin:0 0 14px; color:var(--muted); font-size:0.92rem;}
+.track-card .count{font-size:0.78rem; color:var(--muted); font-weight:700; letter-spacing:1px; text-transform:uppercase;}
+.track-card.php .count{color:var(--php);}
+.track-card.laravel .count{color:var(--laravel);}
+
+.home h2.section-title{
+  font-family:Georgia, serif; font-size:1.7rem; margin:0 0 20px; font-weight:800;
+}
+.chapter-grid{display:grid; grid-template-columns:repeat(3, 1fr); gap:14px;}
+.chapter-card{
+  display:flex; align-items:center; gap:14px;
+  background:var(--panel); border:1px solid var(--border); border-radius:12px;
+  padding:16px 18px; cursor:pointer; transition:border-color .15s;
+}
+.chapter-card:hover{border-color:var(--accent);}
+.chapter-card .cnum{font-size:0.78rem; color:var(--muted); font-weight:700; min-width:24px;}
+.chapter-card .ctitle{font-size:0.92rem; font-weight:600; flex:1;}
+.chapter-card .badge{
+  font-size:0.66rem; font-weight:800; letter-spacing:1.5px; text-transform:uppercase;
+  padding:4px 8px; border-radius:5px; flex-shrink:0;
+}
+.chapter-card .badge.php{background:var(--php-soft); color:var(--php);}
+.chapter-card .badge.laravel{background:var(--laravel-soft); color:var(--laravel);}
+.chapter-card .check{color:var(--good); font-size:0.9rem; flex-shrink:0;}
+
+@media (max-width:880px){
+  .track-cards{grid-template-columns:1fr;}
+  .chapter-grid{grid-template-columns:1fr;}
+  .home h1{font-size:2.3rem;}
+  .home{padding:36px 18px 60px;}
+}
+
+/* ===== Chapter content ===== */
+.content{max-width:780px; margin:0 auto; padding:36px 32px 90px;}
+.content h1{font-family:Georgia, 'Times New Roman', serif; font-size:2.1rem; margin:0 0 6px;}
+.chapter-top{display:flex; justify-content:space-between; align-items:flex-start; gap:16px; margin-bottom:6px;}
+.chapter-meta{
+  display:inline-block; font-size:0.7rem; letter-spacing:2px; text-transform:uppercase;
+  padding:4px 10px; border-radius:20px; margin-bottom:18px; font-weight:700;
+}
+.chapter-meta.php{background:var(--php-soft); color:var(--php);}
+.chapter-meta.laravel{background:var(--laravel-soft); color:var(--laravel);}
+
+.complete-toggle{
+  display:flex; align-items:center; gap:8px; font-size:0.8rem; color:var(--muted);
+  border:1px solid var(--border); border-radius:20px; padding:6px 12px 6px 8px;
+  cursor:pointer; white-space:nowrap; user-select:none; flex-shrink:0;
+}
+.complete-toggle .box{width:16px; height:16px; border-radius:50%; border:1.5px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:0.7rem;}
+.complete-toggle.done{color:var(--good); border-color:var(--good)55;}
+.complete-toggle.done .box{background:var(--good); border-color:var(--good); color:#06281c;}
+
+.content h2{font-family:Georgia, 'Times New Roman', serif; font-size:1.45rem; margin:34px 0 12px; padding-top:8px; border-top:1px solid var(--border);}
+.content h2:first-of-type{border-top:none; padding-top:0;}
+.content h3{font-size:1.12rem; margin:22px 0 8px;}
+.content p{margin:0 0 14px;}
+.content ul, .content ol{margin:0 0 14px; padding-left:22px;}
+.content li{margin-bottom:6px;}
+.content strong{color:#fff;}
+.content code{background:var(--code-bg); padding:2px 6px; border-radius:4px; font-family:'Fira Code', Consolas, Monaco, monospace; font-size:0.85em; color:#e0a96d;}
+pre{background:var(--code-bg); border:1px solid var(--border); border-radius:10px; padding:14px 16px; overflow-x:auto; margin:10px 0 18px; font-size:0.85rem;}
+pre code{background:none; padding:0; color:inherit;}
+.callout{border-left:4px solid var(--accent); background:#f0b94d14; padding:12px 16px; border-radius:0 8px 8px 0; margin:14px 0; font-size:0.92rem;}
+.callout.warn{border-left-color:#f0b429; background:#f0b42914;}
+.callout b{display:block; margin-bottom:4px; font-size:0.78rem; text-transform:uppercase; letter-spacing:1px; color:var(--accent);}
+.callout.warn b{color:#f0b429;}
+
+.pagenav{display:flex; justify-content:space-between; gap:16px; margin-top:48px; padding-top:24px; border-top:1px solid var(--border);}
+.pagenav a{flex:1; border:1px solid var(--border); border-radius:10px; padding:14px 16px; display:flex; flex-direction:column; gap:4px; color:var(--text); transition:border-color .15s; cursor:pointer;}
+.pagenav a:hover{border-color:var(--accent); text-decoration:none;}
+.pagenav a.next{text-align:right; align-items:flex-end;}
+.pagenav .label{font-size:0.7rem; text-transform:uppercase; letter-spacing:2px; color:var(--muted);}
+.pagenav .title{font-weight:600; font-size:0.95rem;}
+.pagenav .spacer{flex:1;}
+
+@media (max-width:880px){
+  .sidebar{position:fixed; left:0; top:0; height:100vh; z-index:100; transform:translateX(-100%); transition:transform .2s; width:280px;}
+  .sidebar.open{transform:translateX(0); box-shadow:20px 0 40px rgba(0,0,0,0.5);}
+  .menu-toggle{display:inline-block;}
+  .content{padding:24px 18px 60px;}
+  .pagenav{flex-direction:column;}
+  .pagenav a.next{align-items:flex-start; text-align:left;}
+}
+
+/* Light mode */
+body.light{
+  --bg:#f7f6f3; --panel:#ffffff; --panel-2:#f0eee9; --border:#e2dfd8;
+  --text:#2b2a28; --muted:#766f64; --code-bg:#f1efe9;
+}
+body.light pre{border-color:#e2dfd8;}
+body.light .content code{color:#a85d00;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <aside class="sidebar" id="sidebar">
+    <p class="brand">PHP <span class="laravel-word">&amp; Laravel</span></p>
+
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="Search the tutorial…" readonly>
+    </div>
+
+    <div class="side-label">Navigation</div>
+    <div class="nav-home" id="navHome" data-nav="home">🏠&nbsp; Home &amp; Table of Contents</div>
+
+    <div class="side-label">Progress</div>
+    <div class="progress-wrap">
+      <div class="progress-text" id="progressText">0 / 0 chapters</div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    </div>
+
+    <div id="navContainer"></div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <button class="toggle-btn menu-toggle" id="menuToggle">☰ Chapters</button>
+      <div class="crumb" id="crumb"></div>
+      <button class="toggle-btn" id="themeToggle">☀️ Light mode</button>
+    </div>
+    <div id="view"></div>
+  </main>
+
+</div>
+
+<div class="search-modal-overlay" id="searchModalOverlay">
+  <div class="search-modal">
+    <div class="search-modal-header">
+      <span>🔍</span>
+      <input type="text" id="modalSearchInput" placeholder="Search chapters, code, concepts…">
+      <span class="sm-esc">esc</span>
+    </div>
+    <div class="search-modal-body" id="searchModalBody">
+      <div class="sm-hint">Type to search across all chapters — titles, code samples, and explanations.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   CHAPTER DATA
+   ============================================================ */
+const chapters = [
+
+/* ===================== PHP TRACK ===================== */
+{
+  id: "php-intro",
+  track: "php",
+  title: "Welcome to PHP & Setting Up",
+  html: `
+  <h2>What PHP actually is</h2>
+  <p>PHP ("PHP: Hypertext Preprocessor") is a <strong>server-side scripting language</strong>. That means PHP code runs on a server, produces output (usually HTML, JSON, or other text), and that output is what gets sent to the browser. The browser never sees your PHP code — only the result.</p>
+  <p>This is the single most important mental model for the whole tutorial: every request a browser makes to a PHP-powered page triggers your PHP script to run from top to bottom, produce some output, and then the script's memory is thrown away. Nothing persists between requests unless you explicitly store it somewhere (a file, a database, a session, etc).</p>
+
+  <h2>Why learn plain PHP before Laravel?</h2>
+  <p>Laravel is a framework <em>written in PHP</em>. Every "magic" feature it gives you — routing, the database layer, request handling — is built on top of the plain PHP concepts we're about to cover. If you jump straight to Laravel, the framework will feel like magic you can't debug. If you understand plain PHP first, Laravel feels like "oh, this is just a well-organized version of what I'd build myself."</p>
+
+  <h2>Setting up your environment</h2>
+  <p>You need three things: PHP itself, a web server (or PHP's built-in one), and a database (we'll use MySQL/MariaDB later). The fastest path on any OS:</p>
+  <ol>
+    <li><strong>Install PHP 8.x</strong> — on macOS use <code>brew install php</code>, on Ubuntu/Debian use <code>sudo apt install php php-cli php-mysql php-sqlite3</code>, on Windows install via <a href="https://windows.php.net/download" target="_blank">windows.php.net</a> or use Laragon/XAMPP.</li>
+    <li><strong>Verify it</strong>: run <code>php -v</code> in your terminal. You should see a version 8.1 or higher.</li>
+    <li><strong>Use PHP's built-in server</strong> for development — no Apache/Nginx config needed yet.</li>
+  </ol>
+
+  <h3>Your first script</h3>
+  <p>Create a folder, e.g. <code>php-tutorial</code>, and inside it a file named <code>index.php</code>:</p>
+  <pre><code class="language-php">&lt;?php
+
+echo "Hello, PHP!";
+</code></pre>
+  <p>PHP code lives between <code>&lt;?php</code> and <code>?&gt;</code> tags. If the file is pure PHP (no HTML mixed in), you can omit the closing <code>?&gt;</code> — this is actually the recommended style to avoid accidental whitespace being sent as output.</p>
+
+  <p>Now run the built-in development server from inside that folder:</p>
+  <pre><code class="language-bash">php -S localhost:8000</code></pre>
+  <p>Open <code>http://localhost:8000</code> in your browser. You should see <strong>Hello, PHP!</strong>. Every time you save the file and refresh, PHP re-runs the whole script — there's no compile step, which is part of why PHP is so fast to iterate with.</p>
+
+  <div class="callout">
+    <b>Mental model</b>
+    Think of a .php file as a recipe that gets cooked fresh for every single visitor, every single time. There's no "running" PHP server holding state in memory between requests by default — every request is a clean slate.
+  </div>
+
+  <h2>php.ini: where defaults live</h2>
+  <p>Every PHP installation has a configuration file called <code>php.ini</code> that controls dozens of runtime defaults: error reporting, max upload size, time zone, memory limits. Find which file is active with <code>php --ini</code>. A few settings worth knowing about early:</p>
+  <pre><code class="language-ini">display_errors = On       ; show errors in the browser (dev only!)
+error_reporting = E_ALL    ; report every kind of error/warning/notice
+memory_limit = 128M         ; max memory a single script can use
+upload_max_filesize = 8M
+date.timezone = "Africa/Nairobi"</code></pre>
+  <p>You can also override most of these per-script with <code>ini_set()</code>, which is handy when you don't control the server's php.ini.</p>
+
+  <h2>Choosing an editor</h2>
+  <p>Any text editor works, but <strong>VS Code</strong> with the "PHP Intelephense" extension gives you autocompletion, type-checking hints, and jump-to-definition for free — extremely useful once you start working with classes across multiple files. PhpStorm is a paid alternative with even deeper refactoring tools, popular for larger Laravel projects.</p>
+
+  <h2>A note on PHP versions</h2>
+  <p>This tutorial targets <strong>PHP 8.1+</strong>. Features like constructor property promotion, enums, readonly properties, and the <code>match</code> expression were introduced in PHP 8.0/8.1 and are used throughout. If <code>php -v</code> shows 7.x, upgrade before continuing — a lot of "why doesn't this work" confusion when following modern tutorials comes from running an old PHP version.</p>
+  `
+},
+
+{
+  id: "php-syntax",
+  track: "php",
+  title: "Syntax, Variables & Data Types",
+  html: `
+  <h2>Mixing PHP with HTML</h2>
+  <p>PHP was originally designed to be embedded directly inside HTML. You can open and close PHP tags as many times as you like in one file:</p>
+  <pre><code class="language-php">&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;body&gt;
+  &lt;h1&gt;&lt;?php echo "Welcome"; ?&gt;&lt;/h1&gt;
+  &lt;p&gt;Today is &lt;?= date("l, F j") ?&gt;&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <p><code>&lt;?= ?&gt;</code> is shorthand for <code>&lt;?php echo ?&gt;</code> — it's the most common way to print a single value inside HTML templates.</p>
+
+  <h2>Variables</h2>
+  <p>Every variable in PHP starts with a <code>$</code> sign. PHP is <strong>dynamically typed</strong> — you don't declare a type, and a variable can hold different types over its lifetime.</p>
+  <pre><code class="language-php">&lt;?php
+$name = "Kimo";        // string
+$age = 30;             // integer
+$price = 19.99;        // float
+$isActive = true;      // boolean
+$nothing = null;       // null
+
+echo "Name: $name, Age: $age";  // double-quoted strings interpolate variables
+</code></pre>
+
+  <div class="callout">
+    <b>Single vs double quotes</b>
+    Single quotes <code>'$name'</code> are taken literally — PHP won't replace <code>$name</code> with its value. Double quotes <code>"$name"</code> interpolate variables. Use single quotes for plain text (slightly faster, no parsing needed) and double quotes whenever you need to insert variables or escape sequences like <code>\\n</code>.
+  </div>
+
+  <h2>Core data types</h2>
+  <ul>
+    <li><strong>string</strong> — text, e.g. <code>"hello"</code></li>
+    <li><strong>int</strong> — whole numbers, e.g. <code>42</code></li>
+    <li><strong>float</strong> (or double) — decimals, e.g. <code>3.14</code></li>
+    <li><strong>bool</strong> — <code>true</code> or <code>false</code></li>
+    <li><strong>array</strong> — ordered map of values (covered in depth later)</li>
+    <li><strong>null</strong> — the absence of a value</li>
+    <li><strong>object</strong> — instances of classes (covered in OOP chapter)</li>
+  </ul>
+
+  <h3>Type juggling and type checking</h3>
+  <p>PHP will silently convert types when it makes sense — this is called <strong>type juggling</strong>. <code>"5" + 1</code> gives the integer <code>6</code>, because the numeric string is converted automatically. This is convenient but can hide bugs, which is why modern PHP encourages explicit checks and type declarations.</p>
+  <pre><code class="language-php">&lt;?php
+var_dump("5" + 1);      // int(6)
+var_dump("5" . 1);      // string(2) "51"  -- the dot is the concatenation operator
+var_dump(gettype(3.14)); // string(6) "double"
+var_dump(is_int(42));    // bool(true)
+</code></pre>
+
+  <h2>Constants</h2>
+  <p>Constants don't use <code>$</code> and, once defined, can't change:</p>
+  <pre><code class="language-php">&lt;?php
+define('MAX_USERS', 100);
+const APP_NAME = 'MyApp'; // const is preferred for compile-time-known values
+
+echo APP_NAME;</code></pre>
+
+  <h2>Heredoc and Nowdoc: multi-line strings</h2>
+  <p>When you need to build a large block of text with variable interpolation — an email body, a chunk of HTML — quoted strings get unwieldy. <strong>Heredoc</strong> syntax lets you write a multi-line string that still interpolates variables, without escaping quotes:</p>
+  <pre><code class="language-php">&lt;?php
+$name = "Amina";
+$message = &lt;&lt;&lt;EOT
+Dear $name,
+
+Thank you for signing up. Your account is ready.
+
+The Team
+EOT;
+echo $message;</code></pre>
+  <p><strong>Nowdoc</strong> (<code>&lt;&lt;&lt;'EOT'</code> with quotes around the marker) is the single-quote equivalent — no interpolation at all, useful for literal templates or code snippets.</p>
+
+  <h2>Casting and converting types explicitly</h2>
+  <p>Rather than relying on implicit type juggling, you can convert explicitly — this is especially important for data coming from <code>$_GET</code>/<code>$_POST</code>, which always arrive as strings:</p>
+  <pre><code class="language-php">&lt;?php
+$page = (int) "5abc";     // 5 -- casting stops at the first non-numeric character
+$price = (float) "19.99"; // 19.99
+$flag = (bool) "0";       // false -- the string "0" is falsy
+$flag2 = (bool) "0.0";    // true  -- but "0.0" is NOT the special falsy string!
+$str = (string) 42;       // "42"
+
+// Function equivalents, slightly more forgiving with whitespace
+intval("  42  ");   // 42
+floatval("3.14abc"); // 3.14
+</code></pre>
+  <div class="callout warn">
+    <b>Falsy values to memorize</b>
+    These all count as <code>false</code> in a boolean context: <code>false</code>, <code>0</code>, <code>0.0</code>, <code>""</code> (empty string), <code>"0"</code> (the string zero), <code>[]</code> (empty array), and <code>null</code>. Every other value, including <code>"0.0"</code> and <code>"false"</code> (as strings!), is truthy. This trips up almost every PHP beginner at least once.
+  </div>
+  `
+},
+
+{
+  id: "php-control-flow",
+  track: "php",
+  title: "Operators & Control Structures",
+  html: `
+  <h2>Comparison: == vs ===</h2>
+  <p>This is one of the most important things to internalize in PHP. <code>==</code> compares values <em>after</em> type juggling ("loose" comparison). <code>===</code> compares both value <strong>and</strong> type ("strict" comparison).</p>
+  <pre><code class="language-php">&lt;?php
+var_dump(0 == "a");      // false in PHP 8 (was true in PHP 7!)
+var_dump("1" == 1);       // true  -- "1" is converted to 1
+var_dump("1" === 1);      // false -- different types
+var_dump(null == false);  // true
+var_dump(null === false); // false
+</code></pre>
+  <div class="callout warn">
+    <b>Rule of thumb</b>
+    Default to <code>===</code> and <code>!==</code> everywhere. Only reach for <code>==</code> when you have a specific, documented reason. This single habit eliminates a huge class of subtle bugs.
+  </div>
+
+  <h2>Conditionals</h2>
+  <pre><code class="language-php">&lt;?php
+$score = 85;
+
+if ($score >= 90) {
+    echo "Grade: A";
+} elseif ($score >= 80) {
+    echo "Grade: B";
+} else {
+    echo "Grade: C or below";
+}
+
+// Ternary operator
+$status = ($score >= 60) ? "Pass" : "Fail";
+
+// Null coalescing operator -- very common in real code
+$username = $_GET['user'] ?? 'Guest'; // use 'Guest' if $_GET['user'] is unset or null
+</code></pre>
+  <p>The <code>??</code> null coalescing operator is everywhere in real PHP code, especially when reading data from forms, arrays, or APIs where a key might not exist.</p>
+
+  <h2>Loops</h2>
+  <pre><code class="language-php">&lt;?php
+// for: when you know how many iterations
+for ($i = 1; $i <= 5; $i++) {
+    echo $i . " ";
+}
+
+// while: condition checked before each iteration
+$count = 0;
+while ($count < 3) {
+    echo "tick ";
+    $count++;
+}
+
+// foreach: the workhorse for arrays
+$fruits = ["apple", "banana", "cherry"];
+foreach ($fruits as $fruit) {
+    echo $fruit . "\\n";
+}
+
+// foreach with key => value, for associative arrays
+$prices = ["apple" => 0.5, "banana" => 0.3];
+foreach ($prices as $name => $price) {
+    echo "$name costs $price\\n";
+}
+</code></pre>
+
+  <h2>match (PHP 8+)</h2>
+  <p><code>match</code> is a more powerful, strict replacement for <code>switch</code>. It uses <code>===</code> comparison, doesn't need <code>break</code>, and returns a value directly.</p>
+  <pre><code class="language-php">&lt;?php
+$role = "editor";
+
+$permissions = match($role) {
+    "admin" => "full access",
+    "editor", "author" => "can write posts", // multiple conditions per arm
+    default => "read only",
+};
+
+echo $permissions; // "can write posts"
+</code></pre>
+
+  <h2>switch vs match</h2>
+  <p>Before <code>match</code> existed, <code>switch</code> was the standard way to branch on a single value. You'll still see it in older code, so it's worth recognizing — but prefer <code>match</code> in new code.</p>
+  <pre><code class="language-php">&lt;?php
+switch ($role) {
+    case "admin":
+        $permissions = "full access";
+        break;       // without break, execution "falls through" to the next case!
+    case "editor":
+    case "author":
+        $permissions = "can write posts";
+        break;
+    default:
+        $permissions = "read only";
+}
+</code></pre>
+  <table style="width:100%; border-collapse:collapse; margin:0 0 14px; font-size:0.9rem;">
+    <tr style="border-bottom:1px solid var(--border);"><th style="text-align:left; padding:6px;">switch</th><th style="text-align:left; padding:6px;">match</th></tr>
+    <tr style="border-bottom:1px solid var(--border);"><td style="padding:6px;">Uses <code>==</code> (loose) comparison</td><td style="padding:6px;">Uses <code>===</code> (strict) comparison</td></tr>
+    <tr style="border-bottom:1px solid var(--border);"><td style="padding:6px;">Needs <code>break</code> to avoid fall-through</td><td style="padding:6px;">No fall-through, ever</td></tr>
+    <tr><td style="padding:6px;">A statement (doesn't return a value)</td><td style="padding:6px;">An expression (returns a value)</td></tr>
+  </table>
+
+  <h2>break and continue with levels</h2>
+  <p>Inside nested loops, <code>break</code> and <code>continue</code> normally affect only the innermost loop. You can pass a number to affect an outer loop:</p>
+  <pre><code class="language-php">&lt;?php
+for ($i = 0; $i < 3; $i++) {
+    for ($j = 0; $j < 3; $j++) {
+        if ($j === 1) {
+            continue 2; // skip to the next iteration of the OUTER loop
+        }
+        echo "$i,$j ";
+    }
+}
+// Output: 0,0 1,0 2,0
+</code></pre>
+
+  <h2>Alternative syntax for templates</h2>
+  <p>When PHP is mixed heavily with HTML (as in Blade-less view files), the colon-based alternative syntax is often more readable than curly braces:</p>
+  <pre><code class="language-php">&lt;?php if ($loggedIn): ?&gt;
+  &lt;p&gt;Welcome back!&lt;/p&gt;
+&lt;?php else: ?&gt;
+  &lt;p&gt;Please log in.&lt;/p&gt;
+&lt;?php endif; ?&gt;
+
+&lt;ul&gt;
+&lt;?php foreach ($items as $item): ?&gt;
+  &lt;li&gt;&lt;?= htmlspecialchars($item) ?&gt;&lt;/li&gt;
+&lt;?php endforeach; ?&gt;
+&lt;/ul&gt;</code></pre>
+  `
+},
+
+{
+  id: "php-functions",
+  track: "php",
+  title: "Functions & Scope",
+  html: `
+  <h2>Defining functions</h2>
+  <pre><code class="language-php">&lt;?php
+function greet(string $name): string {
+    return "Hello, $name!";
+}
+
+echo greet("Kimo");</code></pre>
+  <p>The <code>: string</code> after the parentheses is a <strong>return type declaration</strong>, and <code>string $name</code> is a <strong>type-hinted parameter</strong>. These aren't required, but using them turns PHP from a "anything goes" language into something much closer to a statically typed one — PHP will throw a <code>TypeError</code> if you pass the wrong type, instead of silently producing garbage output three steps later.</p>
+
+  <h2>Default values, named arguments & variadics</h2>
+  <pre><code class="language-php">&lt;?php
+function makeUser(string $name, string $role = "member"): array {
+    return ['name' => $name, 'role' => $role];
+}
+
+makeUser("Amina");                       // role defaults to "member"
+makeUser(name: "Amina", role: "admin");  // named arguments (PHP 8+) -- order doesn't matter
+
+// Variadic functions accept any number of arguments
+function sum(int ...$numbers): int {
+    return array_sum($numbers);
+}
+echo sum(1, 2, 3, 4); // 10
+</code></pre>
+
+  <h2>Scope: the most common beginner trap</h2>
+  <p>Variables defined inside a function are <strong>local</strong> to that function — they don't exist outside it, and variables from outside don't exist inside it, even if the names match.</p>
+  <pre><code class="language-php">&lt;?php
+$counter = 0;
+
+function increment() {
+    $counter = $counter + 1; // ERROR-prone: this $counter is a DIFFERENT variable
+    return $counter;
+}
+
+echo increment(); // 1, not 1-based on the outer $counter
+echo $counter;    // still 0 -- the outer variable was never touched
+</code></pre>
+  <p>To work with outer state, pass it in and return the new value (preferred), or use the <code>global</code> keyword (discouraged — it makes code hard to test and reason about), or use static variables for state that persists across calls within the same request:</p>
+  <pre><code class="language-php">&lt;?php
+function increment(int $counter): int {
+    return $counter + 1;
+}
+$counter = increment($counter ?? 0);
+
+// static keeps its value between calls, but only for THIS request's lifetime
+function callCount(): int {
+    static $calls = 0;
+    $calls++;
+    return $calls;
+}
+echo callCount(); // 1
+echo callCount(); // 2
+</code></pre>
+
+  <h2>Arrow functions & closures</h2>
+  <p>Closures are anonymous functions you can store in variables or pass around — essential for callbacks used by array functions later.</p>
+  <pre><code class="language-php">&lt;?php
+$double = fn($x) => $x * 2;       // arrow function, short syntax
+echo $double(5); // 10
+
+$multiplier = 3;
+$triple = function($x) use ($multiplier) {
+    return $x * $multiplier;      // 'use' imports outer variables into the closure
+};
+echo $triple(5); // 15
+</code></pre>
+
+  <h2>Recursion</h2>
+  <p>A recursive function calls itself to break a problem into smaller sub-problems. Every recursive function needs a <strong>base case</strong> (when to stop) to avoid infinite recursion.</p>
+  <pre><code class="language-php">&lt;?php
+function factorial(int $n): int {
+    if ($n <= 1) {
+        return 1; // base case
+    }
+    return $n * factorial($n - 1); // recursive case
+}
+
+echo factorial(5); // 120
+
+// Recursion is also natural for tree-like data, e.g. nested categories
+function countItems(array $tree): int {
+    $count = count($tree);
+    foreach ($tree as $node) {
+        if (!empty($node['children'])) {
+            $count += countItems($node['children']);
+        }
+    }
+    return $count;
+}
+</code></pre>
+
+  <h2>First-class callable syntax (PHP 8.1+)</h2>
+  <p>Passing an existing function or method as a callback used to require awkward strings or arrays. PHP 8.1 introduced a cleaner syntax:</p>
+  <pre><code class="language-php">&lt;?php
+// Old way
+$upper = array_map('strtoupper', $names);
+$upper = array_map([$this, 'formatName'], $names);
+
+// New first-class callable syntax
+$upper = array_map(strtoupper(...), $names);
+$upper = array_map($this->formatName(...), $names);
+</code></pre>
+
+  <h2>Pure functions and why they matter</h2>
+  <p>A function is <strong>pure</strong> if its output depends only on its inputs, and it has no side effects (doesn't modify global state, doesn't write to a database, doesn't print anything). Pure functions are easier to test, reason about, and reuse.</p>
+  <pre><code class="language-php">&lt;?php
+// Pure -- same input always produces same output, no side effects
+function applyTax(float $price, float $rate): float {
+    return $price * (1 + $rate);
+}
+
+// Impure -- depends on hidden global state AND has a side effect
+function applyTaxAndLog(float $price): float {
+    global $taxRate;
+    $result = $price * (1 + $taxRate);
+    file_put_contents('log.txt', "Applied tax: $result\n", FILE_APPEND);
+    return $result;
+}
+</code></pre>
+  <p>You don't need to make <em>everything</em> pure, but isolating your business logic (calculations, formatting, validation rules) into pure functions — and pushing side effects (database writes, emails, file I/O) to the edges of your program — makes code dramatically easier to unit test, as you'll see in the Laravel testing chapter.</p>
+  `
+},
+
+{
+  id: "php-arrays",
+  track: "php",
+  title: "Arrays & String Functions",
+  html: `
+  <h2>Indexed arrays</h2>
+  <pre><code class="language-php">&lt;?php
+$colors = ["red", "green", "blue"];
+echo $colors[0];      // red
+$colors[] = "yellow"; // append
+unset($colors[1]);    // remove "green" -- leaves a gap in the keys!
+echo count($colors);  // 3
+</code></pre>
+
+  <h2>Associative arrays — PHP's most-used data structure</h2>
+  <p>An associative array maps string (or int) keys to values. Conceptually identical to a dictionary, hash map, or object literal in other languages. This is how PHP represents almost everything: form data, JSON, database rows, configuration.</p>
+  <pre><code class="language-php">&lt;?php
+$user = [
+    'id' => 1,
+    'name' => 'Amina Yusuf',
+    'email' => 'amina@example.com',
+];
+
+echo $user['name'];
+
+// Nested arrays -- common for JSON-like structures
+$post = [
+    'title' => 'My first post',
+    'author' => $user,
+    'tags' => ['php', 'tutorial'],
+];
+echo $post['author']['name'];   // Amina Yusuf
+echo $post['tags'][0];          // php
+</code></pre>
+
+  <h2>Essential array functions</h2>
+  <pre><code class="language-php">&lt;?php
+$numbers = [5, 3, 8, 1, 9];
+
+sort($numbers);                 // [1, 3, 5, 8, 9] -- modifies in place
+$doubled = array_map(fn($n) => $n * 2, $numbers);
+$evens   = array_filter($numbers, fn($n) => $n % 2 === 0);
+$total   = array_reduce($numbers, fn($carry, $n) => $carry + $n, 0);
+
+print_r($doubled); // [2, 6, 10, 16, 18]
+print_r($evens);   // keeps original keys: [2 => 8]
+echo $total;       // 26
+
+// Searching
+in_array(8, $numbers);          // true
+array_search(8, $numbers);      // returns the key where 8 is found
+
+// Combining
+$a = ['a' => 1, 'b' => 2];
+$b = ['b' => 99, 'c' => 3];
+$merged = array_merge($a, $b);  // ['a'=>1, 'b'=>99, 'c'=>3] -- later keys win
+</code></pre>
+  <div class="callout">
+    <b>array_map / array_filter / array_reduce</b>
+    These three functions are the functional-programming backbone of PHP. <code>map</code> transforms every element, <code>filter</code> keeps only elements that pass a test, <code>reduce</code> collapses an array into a single value. Get comfortable with these — Laravel's Collections (covered later) are essentially a fluent, chainable wrapper around exactly these ideas.
+  </div>
+
+  <h2>String functions you'll use constantly</h2>
+  <pre><code class="language-php">&lt;?php
+$s = "  Hello, World!  ";
+
+trim($s);                  // "Hello, World!" -- removes whitespace from both ends
+strtolower($s);            // "  hello, world!  "
+str_replace("World", "PHP", $s);
+strlen($s);                // byte-length of the string
+substr($s, 2, 5);          // "Hello"
+explode(", ", "a, b, c");  // ["a", "b", "c"] -- string to array
+implode("-", ["a","b","c"]); // "a-b-c" -- array to string
+sprintf("Price: $%.2f", 19.5); // "Price: $19.50" -- formatted strings
+str_contains($s, "World");  // true (PHP 8+)
+</code></pre>
+
+  <h2>Sorting with custom logic</h2>
+  <p><code>sort()</code> and friends only handle simple cases. For sorting arrays of arrays (e.g. rows from a database) by a specific field, use <code>usort()</code> with a comparison function:</p>
+  <pre><code class="language-php">&lt;?php
+$users = [
+    ['name' => 'Charlie', 'age' => 35],
+    ['name' => 'Amina', 'age' => 28],
+    ['name' => 'Bashir', 'age' => 42],
+];
+
+usort($users, fn($a, $b) => $a['age'] <=> $b['age']); // sort by age, ascending
+
+// The <=> "spaceship operator" returns -1, 0, or 1 -- exactly what sort
+// functions expect, and works for numbers and strings alike.
+
+usort($users, fn($a, $b) => $a['name'] <=> $b['name']); // sort by name
+</code></pre>
+
+  <h2>More array utilities you'll see often</h2>
+  <pre><code class="language-php">&lt;?php
+$users = [
+    ['id' => 1, 'name' => 'Amina', 'role' => 'admin'],
+    ['id' => 2, 'name' => 'Bashir', 'role' => 'editor'],
+];
+
+// Pluck a single column -- very common when preparing data for a dropdown
+$names = array_column($users, 'name');           // ['Amina', 'Bashir']
+$byId  = array_column($users, 'name', 'id');     // [1 => 'Amina', 2 => 'Bashir']
+
+// Remove duplicate values
+$tags = array_unique(['php', 'laravel', 'php', 'api']); // ['php', 'laravel', 'api']
+
+// Slice a portion of an array (e.g. for simple pagination)
+$page2 = array_slice($users, 10, 10); // skip 10, take 10
+
+// Check structure quickly while debugging
+var_dump($users[0]);
+print_r($users);
+</code></pre>
+
+  <h2>Destructuring with list()</h2>
+  <p>You can unpack array values directly into variables — handy for functions that return multiple values:</p>
+  <pre><code class="language-php">&lt;?php
+function minMax(array $numbers): array {
+    return [min($numbers), max($numbers)];
+}
+
+[$low, $high] = minMax([4, 1, 9, 3]);
+echo "Low: $low, High: $high"; // Low: 1, High: 9
+
+// Works with keys too
+['name' => $name, 'role' => $role] = $users[0];
+</code></pre>
+  `
+},
+
+{
+  id: "php-forms-superglobals",
+  track: "php",
+  title: "Forms & Superglobals",
+  html: `
+  <h2>What are superglobals?</h2>
+  <p>Superglobals are built-in arrays that PHP populates automatically with information about the current request. They're available everywhere — inside any function, any file, without needing to import or pass them.</p>
+  <ul>
+    <li><code>$_GET</code> — data from the URL query string (<code>?id=5</code>)</li>
+    <li><code>$_POST</code> — data submitted via an HTML form with method="POST"</li>
+    <li><code>$_REQUEST</code> — merged GET, POST and COOKIE data (avoid — ambiguous about source)</li>
+    <li><code>$_SERVER</code> — server and request metadata (URL path, HTTP method, headers...)</li>
+    <li><code>$_SESSION</code> — persistent data tied to a visitor across requests (needs <code>session_start()</code>)</li>
+    <li><code>$_COOKIE</code> — cookies sent by the browser</li>
+    <li><code>$_FILES</code> — uploaded files</li>
+  </ul>
+
+  <h2>Building a simple contact form</h2>
+  <p><strong>form.php</strong> — the HTML form:</p>
+  <pre><code class="language-php">&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;body&gt;
+  &lt;form action="process.php" method="POST"&gt;
+    &lt;label&gt;Name: &lt;input type="text" name="name" required&gt;&lt;/label&gt;&lt;br&gt;
+    &lt;label&gt;Email: &lt;input type="email" name="email" required&gt;&lt;/label&gt;&lt;br&gt;
+    &lt;label&gt;Message: &lt;textarea name="message"&gt;&lt;/textarea&gt;&lt;/label&gt;&lt;br&gt;
+    &lt;button type="submit"&gt;Send&lt;/button&gt;
+  &lt;/form&gt;
+&lt;/html&gt;</code></pre>
+
+  <p><strong>process.php</strong> — handling the submission:</p>
+  <pre><code class="language-php">&lt;?php
+// Always check the request method before trusting $_POST
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
+    exit('Method not allowed');
+}
+
+// htmlspecialchars() prevents the value being interpreted as HTML/JS
+// when echoed back -- this is your first line of defense against XSS
+$name = htmlspecialchars(trim($_POST['name'] ?? ''));
+$email = trim($_POST['email'] ?? '');
+$message = htmlspecialchars(trim($_POST['message'] ?? ''));
+
+$errors = [];
+if ($name === '') {
+    $errors[] = "Name is required.";
+}
+if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    $errors[] = "Please provide a valid email.";
+}
+
+if (!empty($errors)) {
+    foreach ($errors as $error) {
+        echo "&lt;p style='color:red'&gt;$error&lt;/p&gt;";
+    }
+} else {
+    echo "&lt;p&gt;Thanks, $name! We'll get back to you at $email.&lt;/p&gt;";
+}
+</code></pre>
+
+  <div class="callout warn">
+    <b>Never trust user input</b>
+    Every value in <code>$_GET</code>, <code>$_POST</code>, <code>$_COOKIE</code> and <code>$_FILES</code> comes directly from the visitor's browser and can contain anything — including malicious HTML, JavaScript, or SQL. Always validate (check it's the shape/type you expect) and escape (neutralize special characters) before using it. We'll cover SQL-specific protection (prepared statements) in the database chapter.
+  </div>
+
+  <h2>Sessions: remembering a user across requests</h2>
+  <pre><code class="language-php">&lt;?php
+session_start(); // must be called before ANY output, on every page that uses sessions
+
+// Store data
+$_SESSION['user_id'] = 42;
+$_SESSION['username'] = 'kimo';
+
+// Read it on a later request
+if (isset($_SESSION['user_id'])) {
+    echo "Welcome back, " . $_SESSION['username'];
+} else {
+    echo "Please log in.";
+}
+
+// Logging out
+session_destroy();
+</code></pre>
+  <p>Behind the scenes, <code>session_start()</code> sets a cookie (by default named <code>PHPSESSID</code>) in the browser containing a random ID. The actual session data is stored on the <em>server</em> (by default as a file), keyed by that ID. This is how PHP "remembers" a logged-in user without storing sensitive data in the browser itself.</p>
+
+  <h2>Handling file uploads</h2>
+  <p>File inputs require <code>enctype="multipart/form-data"</code> on the form, and uploaded files appear in <code>$_FILES</code> rather than <code>$_POST</code>:</p>
+  <pre><code class="language-html">&lt;form action="upload.php" method="POST" enctype="multipart/form-data"&gt;
+  &lt;input type="file" name="avatar"&gt;
+  &lt;button type="submit"&gt;Upload&lt;/button&gt;
+&lt;/form&gt;</code></pre>
+  <pre><code class="language-php">&lt;?php
+if ($_FILES['avatar']['error'] !== UPLOAD_ERR_OK) {
+    exit('Upload failed.');
+}
+
+// Validate type and size BEFORE moving the file anywhere
+$allowed = ['image/jpeg', 'image/png', 'image/webp'];
+if (!in_array($_FILES['avatar']['type'], $allowed, true)) {
+    exit('Invalid file type.');
+}
+if ($_FILES['avatar']['size'] > 2 * 1024 * 1024) { // 2MB
+    exit('File too large.');
+}
+
+// Generate a new, safe filename -- NEVER trust the original filename
+$ext = pathinfo($_FILES['avatar']['name'], PATHINFO_EXTENSION);
+$filename = bin2hex(random_bytes(16)) . '.' . $ext;
+$destination = __DIR__ . '/uploads/' . $filename;
+
+move_uploaded_file($_FILES['avatar']['tmp_name'], $destination);
+echo "Saved as $filename";
+</code></pre>
+  <div class="callout warn">
+    <b>Why generate a new filename?</b>
+    A file named <code>../../config.php</code> or <code>shell.php</code> uploaded by an attacker could overwrite sensitive files or, if your uploads folder is web-accessible, let them execute arbitrary PHP. Always generate a random name, validate the actual content type (not just the client-supplied MIME type, which can be spoofed), and ideally store uploads outside the web root or in object storage.
+  </div>
+
+  <h2>Flash messages: one-time session messages</h2>
+  <p>A common pattern after a redirect-after-POST: show a "Task created!" message exactly once, then have it disappear on the next page load. This is what Laravel's <code>session()->flash()</code> does under the hood:</p>
+  <pre><code class="language-php">&lt;?php
+session_start();
+
+// After a successful action, before redirecting:
+$_SESSION['flash'] = "Task created successfully!";
+header('Location: /index.php');
+exit;
+</code></pre>
+  <pre><code class="language-php">&lt;?php
+// At the top of the next page's view
+session_start();
+$flash = $_SESSION['flash'] ?? null;
+unset($_SESSION['flash']); // remove it so it only shows once
+?&gt;
+&lt;?php if ($flash): ?&gt;
+  &lt;div class="alert"&gt;&lt;?= htmlspecialchars($flash) ?&gt;&lt;/div&gt;
+&lt;?php endif; ?&gt;</code></pre>
+  `
+},
+
+{
+  id: "php-oop",
+  track: "php",
+  title: "Object-Oriented PHP",
+  html: `
+  <h2>Why OOP?</h2>
+  <p>As programs grow, plain functions and arrays scattered everywhere become hard to organize. Object-oriented programming groups <strong>data</strong> (properties) and <strong>behavior</strong> (methods) that belong together into a single unit: a <strong>class</strong>. An <strong>object</strong> is one instance of that class. Laravel is built almost entirely from classes — Controllers, Models, Requests, Jobs are all just classes — so this chapter is essential groundwork.</p>
+
+  <h2>Classes, properties, and methods</h2>
+  <pre><code class="language-php">&lt;?php
+class Product {
+    // Properties: the data each Product instance holds
+    public string $name;
+    public float $price;
+    private int $stock;
+
+    // Constructor: runs automatically when you create a new instance
+    public function __construct(string $name, float $price, int $stock) {
+        $this->name = $name;
+        $this->price = $price;
+        $this->stock = $stock;
+    }
+
+    // Methods: behavior
+    public function isInStock(): bool {
+        return $this->stock > 0;
+    }
+
+    public function sell(int $quantity): void {
+        if ($quantity > $this->stock) {
+            throw new InvalidArgumentException("Not enough stock");
+        }
+        $this->stock -= $quantity;
+    }
+}
+
+$laptop = new Product("Laptop", 1200.00, 5);
+echo $laptop->name;        // Laptop
+echo $laptop->isInStock();  // 1 (true)
+$laptop->sell(2);
+</code></pre>
+  <p><code>$this</code> refers to "the current object" — the specific instance the method was called on. <code>public</code>, <code>private</code> and <code>protected</code> control <strong>visibility</strong>: public properties/methods can be accessed from anywhere, private only from within the class itself, and protected from the class and its children (subclasses).</p>
+
+  <h2>Constructor promotion (modern, concise syntax)</h2>
+  <p>PHP 8 lets you declare and assign properties directly in the constructor signature — this is the style you'll see constantly in Laravel code:</p>
+  <pre><code class="language-php">&lt;?php
+class Product {
+    public function __construct(
+        public string $name,
+        public float $price,
+        private int $stock = 0,
+    ) {}
+
+    public function isInStock(): bool {
+        return $this->stock > 0;
+    }
+}
+</code></pre>
+
+  <h2>Inheritance & abstract classes</h2>
+  <pre><code class="language-php">&lt;?php
+abstract class Shape {
+    abstract public function area(): float; // every subclass MUST implement this
+
+    public function describe(): string {
+        return "This shape has an area of " . $this->area();
+    }
+}
+
+class Circle extends Shape {
+    public function __construct(private float $radius) {}
+
+    public function area(): float {
+        return pi() * $this->radius ** 2;
+    }
+}
+
+class Rectangle extends Shape {
+    public function __construct(private float $width, private float $height) {}
+
+    public function area(): float {
+        return $this->width * $this->height;
+    }
+}
+
+$shapes = [new Circle(3), new Rectangle(4, 5)];
+foreach ($shapes as $shape) {
+    echo $shape->describe() . "\\n"; // describe() is inherited, area() is overridden per-class
+}
+</code></pre>
+  <p>An <code>abstract class</code> can't be instantiated directly (<code>new Shape()</code> would error) — it exists purely to be extended. This guarantees every subclass implements <code>area()</code> while sharing the common <code>describe()</code> logic.</p>
+
+  <h2>Interfaces</h2>
+  <p>An interface defines a <strong>contract</strong> — a set of methods a class promises to implement — without providing any implementation itself. Unlike abstract classes, a class can implement multiple interfaces.</p>
+  <pre><code class="language-php">&lt;?php
+interface Discountable {
+    public function applyDiscount(float $percent): void;
+}
+
+class Product implements Discountable {
+    public function __construct(public string $name, public float $price) {}
+
+    public function applyDiscount(float $percent): void {
+        $this->price -= $this->price * ($percent / 100);
+    }
+}
+</code></pre>
+  <p>Interfaces are how Laravel achieves a lot of its flexibility: code can depend on <code>CacheInterface</code> rather than a specific cache implementation, and you can swap Redis for file-based caching without changing any code that uses the interface.</p>
+
+  <h2>Static properties and methods</h2>
+  <p><code>static</code> members belong to the <em>class</em> itself, not to any individual instance — useful for counters, factories, or utility functions.</p>
+  <pre><code class="language-php">&lt;?php
+class User {
+    public static int $count = 0;
+
+    public function __construct(public string $name) {
+        self::$count++; // 'self' refers to the class itself
+    }
+
+    public static function make(string $name): self {
+        return new self($name);
+    }
+}
+
+$u1 = User::make("Amina");
+$u2 = User::make("Kimo");
+echo User::$count; // 2 -- accessed via :: , not ->
+</code></pre>
+
+  <h2>Traits: sharing code without inheritance</h2>
+  <p>PHP classes can only extend <em>one</em> parent class, but sometimes several unrelated classes need the same chunk of behavior. A <strong>trait</strong> is a reusable block of methods you can "mix in" to any class:</p>
+  <pre><code class="language-php">&lt;?php
+trait Loggable {
+    protected array $logs = [];
+
+    public function log(string $message): void {
+        $this->logs[] = date('Y-m-d H:i:s') . " - $message";
+    }
+
+    public function getLogs(): array {
+        return $this->logs;
+    }
+}
+
+trait Timestamps {
+    public ?string $createdAt = null;
+
+    public function touchCreatedAt(): void {
+        $this->createdAt = date('Y-m-d H:i:s');
+    }
+}
+
+class Order {
+    use Loggable, Timestamps; // mix in both traits
+
+    public function __construct(public string $id) {
+        $this->touchCreatedAt();
+        $this->log("Order $id created");
+    }
+}
+</code></pre>
+  <p>Laravel uses traits extensively — <code>HasFactory</code>, <code>Notifiable</code>, and <code>SoftDeletes</code> are all traits you'll <code>use</code> inside Eloquent models later.</p>
+
+  <h2>Magic methods</h2>
+  <p>Methods starting with two underscores have special meaning to PHP and are called automatically in certain situations. You've already met <code>__construct</code>. A few others:</p>
+  <pre><code class="language-php">&lt;?php
+class Money {
+    public function __construct(private int $cents) {}
+
+    // Called when the object is treated as a string, e.g. echo $money;
+    public function __toString(): string {
+        return sprintf('$%.2f', $this->cents / 100);
+    }
+
+    // Called when accessing an undefined/inaccessible property
+    public function __get(string $name) {
+        if ($name === 'dollars') {
+            return $this->cents / 100;
+        }
+        throw new \Exception("Unknown property: $name");
+    }
+}
+
+$price = new Money(1999);
+echo $price;          // "$19.99" -- __toString is called automatically
+echo $price->dollars; // 19.99    -- __get is called automatically
+</code></pre>
+  <div class="callout">
+    <b>Use magic methods sparingly</b>
+    They're powerful but make code harder to navigate -- an IDE can't "jump to definition" for a property created dynamically inside <code>__get</code>. Laravel relies on them heavily (Eloquent models use <code>__get</code>/<code>__set</code> for attribute access), but in your own code, prefer explicit methods and properties unless you have a good reason.
+  </div>
+
+  <h2>Enums (PHP 8.1+)</h2>
+  <p>Enums give a fixed set of named values a proper type, replacing the old pattern of class constants like <code>const STATUS_PENDING = 'pending'</code>:</p>
+  <pre><code class="language-php">&lt;?php
+enum OrderStatus: string {
+    case Pending = 'pending';
+    case Shipped = 'shipped';
+    case Delivered = 'delivered';
+
+    public function label(): string {
+        return match($this) {
+            self::Pending => 'Awaiting shipment',
+            self::Shipped => 'On its way',
+            self::Delivered => 'Delivered',
+        };
+    }
+}
+
+$status = OrderStatus::Shipped;
+echo $status->value;       // "shipped"
+echo $status->label();     // "On its way"
+
+function process(OrderStatus $status) { /* ... */ } // type-safe parameter
+</code></pre>
+  `
+},
+
+{
+  id: "php-errors",
+  track: "php",
+  title: "Error Handling & Exceptions",
+  html: `
+  <h2>Errors vs Exceptions</h2>
+  <p>PHP distinguishes between <strong>errors</strong> (problems with the code itself — calling an undefined function, fatal type errors) and <strong>exceptions</strong> (problems that occur during normal program flow that <em>you</em> can anticipate and handle — a file not found, invalid user input, a failed API call). As of PHP 7+, many internal errors are also thrown as <code>Error</code> objects, which share a common ancestor (<code>Throwable</code>) with exceptions, so they can be caught the same way.</p>
+
+  <h2>try / catch / finally</h2>
+  <pre><code class="language-php">&lt;?php
+function divide(float $a, float $b): float {
+    if ($b === 0.0) {
+        throw new InvalidArgumentException("Cannot divide by zero");
+    }
+    return $a / $b;
+}
+
+try {
+    echo divide(10, 0);
+} catch (InvalidArgumentException $e) {
+    echo "Error: " . $e->getMessage();
+} finally {
+    echo "\\n(this always runs, success or failure)";
+}
+</code></pre>
+  <p><code>throw</code> immediately stops execution of the current function and "throws" the exception object up the call stack until something catches it. If nothing catches it, PHP halts the script with a fatal error — which is why uncaught exceptions in production show ugly error pages (and why Laravel wraps everything in a global exception handler, as we'll see later).</p>
+
+  <h2>Catching multiple exception types</h2>
+  <pre><code class="language-php">&lt;?php
+try {
+    $data = json_decode($jsonString, flags: JSON_THROW_ON_ERROR);
+    $result = 10 / $divisor;
+} catch (JsonException $e) {
+    echo "Invalid JSON: " . $e->getMessage();
+} catch (DivisionByZeroError $e) {
+    echo "Math error: " . $e->getMessage();
+} catch (Throwable $e) {
+    // Catches absolutely anything else -- a useful last resort
+    echo "Unexpected error: " . $e->getMessage();
+}
+</code></pre>
+
+  <h2>Custom exceptions</h2>
+  <p>You can create your own exception classes by extending <code>Exception</code>. This lets calling code catch <em>specific</em> problems by type, which is far more useful than checking error message strings.</p>
+  <pre><code class="language-php">&lt;?php
+class InsufficientStockException extends Exception {
+    public function __construct(public string $product, public int $requested, public int $available) {
+        parent::__construct("Cannot fulfill order for $product: requested $requested, only $available available");
+    }
+}
+
+class Inventory {
+    private array $stock = ['widget' => 5];
+
+    public function reserve(string $product, int $quantity): void {
+        $available = $this->stock[$product] ?? 0;
+        if ($quantity > $available) {
+            throw new InsufficientStockException($product, $quantity, $available);
+        }
+        $this->stock[$product] -= $quantity;
+    }
+}
+
+try {
+    (new Inventory())->reserve('widget', 10);
+} catch (InsufficientStockException $e) {
+    echo $e->getMessage();
+    echo " (You can also access \\$e->product, \\$e->requested, etc.)";
+}
+</code></pre>
+
+  <h2>Logging vs displaying errors</h2>
+  <p>In development, you want to <em>see</em> every notice, warning, and error immediately. In production, you never want raw error details shown to visitors (they can leak file paths, database structure, or other sensitive info), but you absolutely want them logged somewhere you can review.</p>
+  <pre><code class="language-php">&lt;?php
+// Development settings (e.g. in a local php.ini or at the top of a bootstrap file)
+error_reporting(E_ALL);
+ini_set('display_errors', '1');
+
+// Production settings
+error_reporting(E_ALL);
+ini_set('display_errors', '0');
+ini_set('log_errors', '1');
+ini_set('error_log', '/var/log/php/app-errors.log');
+</code></pre>
+
+  <h2>A global exception handler</h2>
+  <p>Even with try/catch everywhere, something will eventually slip through. <code>set_exception_handler()</code> registers a function that catches <em>any</em> uncaught exception in the script — the last line of defense, and the manual version of what Laravel's exception handler does automatically.</p>
+  <pre><code class="language-php">&lt;?php
+set_exception_handler(function (Throwable $e) {
+    error_log($e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
+
+    http_response_code(500);
+    if (getenv('APP_ENV') === 'production') {
+        echo json_encode(['error' => 'Something went wrong.']);
+    } else {
+        echo json_encode(['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+    }
+});
+
+// Now, anywhere in the app, an uncaught exception is logged and
+// produces a clean JSON error response instead of a raw PHP error page
+throw new RuntimeException("Database connection failed");
+</code></pre>
+
+  <h2>The @ error suppression operator (and why to avoid it)</h2>
+  <p>Prefixing an expression with <code>@</code> silences any error it produces:</p>
+  <pre><code class="language-php">&lt;?php
+$data = @file_get_contents('maybe-missing.txt'); // returns false silently on failure, no warning
+</code></pre>
+  <div class="callout warn">
+    <b>Avoid @ in new code</b>
+    It doesn't just hide the <em>warning</em> — it hides the fact that something went wrong at all, making bugs much harder to track down. Instead, check explicitly:
+    <pre style="margin-top:8px;"><code class="language-php">if (file_exists('maybe-missing.txt')) {
+    $data = file_get_contents('maybe-missing.txt');
+} else {
+    $data = null; // or throw, or log
+}</code></pre>
+  </div>
+
+  <h2>Assertions for invariants during development</h2>
+  <p><code>assert()</code> checks a condition and throws an <code>AssertionError</code> if it's false — useful for catching "this should never happen" situations during development. In production, assertions can be disabled entirely (zero-cost), so never rely on them for actual validation of user input.</p>
+  <pre><code class="language-php">&lt;?php
+function withdraw(float $balance, float $amount): float {
+    assert($amount > 0, "Withdrawal amount must be positive");
+    assert($amount <= $balance, "Insufficient funds");
+    return $balance - $amount;
+}
+</code></pre>
+  `
+},
+
+{
+  id: "php-files-sessions",
+  track: "php",
+  title: "File Handling & Configuration",
+  html: `
+  <h2>Reading and writing files</h2>
+  <pre><code class="language-php">&lt;?php
+// Quick read/write of whole files
+file_put_contents('notes.txt', "Hello file system\\n");
+$contents = file_get_contents('notes.txt');
+echo $contents;
+
+// Append instead of overwrite
+file_put_contents('notes.txt', "Another line\\n", FILE_APPEND);
+
+// Line-by-line reading -- memory-efficient for big files
+$handle = fopen('notes.txt', 'r');
+while (($line = fgets($handle)) !== false) {
+    echo "Line: $line";
+}
+fclose($handle);
+
+// Check existence before acting
+if (file_exists('config.json')) {
+    $config = json_decode(file_get_contents('config.json'), true); // true = return as array
+}
+</code></pre>
+
+  <h2>Working with JSON</h2>
+  <p>JSON is the universal data interchange format, and you'll use it constantly once we build APIs.</p>
+  <pre><code class="language-php">&lt;?php
+$data = ['name' => 'Amina', 'roles' => ['admin', 'editor']];
+
+$json = json_encode($data);
+echo $json; // {"name":"Amina","roles":["admin","editor"]}
+
+// Decode back -- 'true' as second argument returns associative arrays
+// instead of stdClass objects, which is usually what you want
+$decoded = json_decode($json, true);
+echo $decoded['name']; // Amina
+
+// Pretty printing for readability/debugging
+echo json_encode($data, JSON_PRETTY_PRINT);
+</code></pre>
+
+  <h2>Organizing code: include, require, and autoloading</h2>
+  <p>As your app grows past one file, you'll split code into multiple files. <code>require</code> brings in another file's code and halts with a fatal error if the file is missing; <code>include</code> only emits a warning. <code>require_once</code>/<code>include_once</code> prevent loading the same file twice.</p>
+  <pre><code class="language-php">&lt;?php
+// db.php
+function getConnection() { /* ... */ }
+
+// index.php
+require_once 'db.php';
+$conn = getConnection();
+</code></pre>
+  <p>For class-based code, manually requiring every file becomes tedious. The standard solution is <strong>Composer's autoloader</strong>, following the <code>PSR-4</code> naming convention. We'll set this up properly in the database chapter — but the idea is: organize classes into folders matching their namespace, run <code>composer dump-autoload</code>, and then any <code>new App\\Models\\Product()</code> just works without manual <code>require</code> statements.</p>
+
+  <h2>Environment configuration</h2>
+  <p>Hardcoding things like database passwords directly in your source code is a security risk and makes it hard to use different settings in development vs production. The standard pattern is a <code>.env</code> file (never committed to version control) containing key=value pairs, loaded at runtime.</p>
+  <pre><code class="language-bash"># .env
+DB_HOST=127.0.0.1
+DB_NAME=myapp
+DB_USER=root
+DB_PASS=secret</code></pre>
+  <pre><code class="language-php">&lt;?php
+// A tiny hand-rolled loader (Laravel uses the vlucas/phpdotenv package for this)
+function loadEnv(string $path): void {
+    foreach (file($path) as $line) {
+        $line = trim($line);
+        if ($line === '' || str_starts_with($line, '#')) continue;
+        [$key, $value] = explode('=', $line, 2);
+        putenv("$key=$value");
+    }
+}
+
+loadEnv(__DIR__ . '/.env');
+$dbHost = getenv('DB_HOST');
+</code></pre>
+  <div class="callout warn">
+    <b>Always .gitignore your .env file</b>
+    Committing credentials to a Git repository — even a private one — is one of the most common real-world security incidents. Add <code>.env</code> to <code>.gitignore</code> on day one of every project, and commit a <code>.env.example</code> with placeholder values instead.
+  </div>
+
+  <h2>Composer and PSR-4 autoloading in practice</h2>
+  <p>Composer is PHP's package manager <em>and</em> the standard way to autoload your own classes. Initialize a project with <code>composer init</code>, which creates a <code>composer.json</code>. The key part for autoloading:</p>
+  <pre><code class="language-json">{
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
+    },
+    "require": {
+        "vlucas/phpdotenv": "^5.6"
+    }
+}</code></pre>
+  <p>This tells Composer: "any class under the <code>App\\</code> namespace lives in the <code>src/</code> folder, following the same path structure." So <code>App\Models\Product</code> maps to <code>src/Models/Product.php</code>.</p>
+  <pre><code class="language-php">&lt;?php
+// src/Models/Product.php
+namespace App\Models;
+
+class Product {
+    public function __construct(public string $name, public float $price) {}
+}
+</code></pre>
+  <pre><code class="language-php">&lt;?php
+// public/index.php
+require __DIR__ . '/../vendor/autoload.php'; // generated by Composer
+
+use App\Models\Product;
+
+$product = new Product("Laptop", 1200);
+</code></pre>
+  <p>Run <code>composer dump-autoload</code> after adding new classes if autoloading doesn't pick them up immediately (it usually does automatically). This single <code>require</code> at the top of your entry point replaces dozens of manual <code>require_once</code> statements — and it's exactly what every Laravel app's <code>public/index.php</code> does on its very first line.</p>
+
+  <h2>A simple dependency injection container</h2>
+  <p>As classes depend on other classes (a controller needs a repository, a repository needs a database connection), manually wiring everything up gets repetitive. A <strong>DI container</strong> is just an object that knows how to build other objects:</p>
+  <pre><code class="language-php">&lt;?php
+class Container {
+    private array $bindings = [];
+
+    public function bind(string $name, callable $factory): void {
+        $this->bindings[$name] = $factory;
+    }
+
+    public function make(string $name) {
+        return ($this->bindings[$name])($this);
+    }
+}
+
+$container = new Container();
+$container->bind(PDO::class, fn() => Database::getConnection());
+$container->bind(TaskRepository::class, fn($c) => new TaskRepository($c->make(PDO::class)));
+
+$repo = $container->make(TaskRepository::class);
+</code></pre>
+  <p>This is a toy version of Laravel's <strong>service container</strong> — when you type-hint <code>TaskRepository $repo</code> in a Laravel controller method, the framework's container resolves the entire dependency chain automatically, the same way <code>make()</code> does here.</p>
+  `
+},
+
+{
+  id: "php-pdo",
+  track: "php",
+  title: "Databases with PDO & MySQL",
+  html: `
+  <h2>PDO: PHP Data Objects</h2>
+  <p>PDO is PHP's database abstraction layer — a single, consistent API for talking to MySQL, PostgreSQL, SQLite, and others. We'll use MySQL for this tutorial, but the PDO code barely changes if you switch databases.</p>
+
+  <h3>Setting up the database</h3>
+  <p>Assume you have MySQL running and create a database and table:</p>
+  <pre><code class="language-sql">CREATE DATABASE tutorial_app;
+
+USE tutorial_app;
+
+CREATE TABLE tasks (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    completed BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);</code></pre>
+
+  <h3>Connecting</h3>
+  <pre><code class="language-php">&lt;?php
+$host = '127.0.0.1';
+$db   = 'tutorial_app';
+$user = 'root';
+$pass = '';
+$charset = 'utf8mb4';
+
+$dsn = "mysql:host=$host;dbname=$db;charset=$charset";
+
+$options = [
+    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,        // throw exceptions on errors
+    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,   // rows as associative arrays
+    PDO::ATTR_EMULATE_PREPARES => false,                // use REAL prepared statements
+];
+
+try {
+    $pdo = new PDO($dsn, $user, $pass, $options);
+} catch (PDOException $e) {
+    throw new PDOException($e->getMessage(), (int)$e->getCode());
+}
+</code></pre>
+  <p>Setting <code>ERRMODE_EXCEPTION</code> is critical — without it, PDO fails <em>silently</em> by default, and you'll spend hours debugging "nothing happened" bugs. With it, any database error throws a catchable <code>PDOException</code>.</p>
+
+  <h2>Prepared statements: the ONLY safe way to query with user input</h2>
+  <p>SQL injection is one of the most dangerous and most preventable vulnerabilities. It happens when user input is concatenated directly into a SQL string:</p>
+  <pre><code class="language-php">&lt;?php
+// NEVER DO THIS
+$title = $_POST['title']; // attacker sends: '); DROP TABLE tasks; --
+$pdo->query("INSERT INTO tasks (title) VALUES ('$title')"); // catastrophic
+</code></pre>
+  <p>A <strong>prepared statement</strong> separates the SQL structure from the data. The database receives the query template first, then the values separately — there's no way for the values to be interpreted as SQL syntax, no matter what they contain.</p>
+  <pre><code class="language-php">&lt;?php
+// Insert
+$stmt = $pdo->prepare("INSERT INTO tasks (title, completed) VALUES (:title, :completed)");
+$stmt->execute([
+    'title' => $_POST['title'],
+    'completed' => false,
+]);
+$newId = $pdo->lastInsertId();
+
+// Select one row
+$stmt = $pdo->prepare("SELECT * FROM tasks WHERE id = :id");
+$stmt->execute(['id' => $taskId]);
+$task = $stmt->fetch(); // returns one row as an associative array, or false
+
+// Select many rows
+$stmt = $pdo->prepare("SELECT * FROM tasks WHERE completed = :completed ORDER BY created_at DESC");
+$stmt->execute(['completed' => false]);
+$tasks = $stmt->fetchAll(); // array of associative arrays
+
+// Update
+$stmt = $pdo->prepare("UPDATE tasks SET completed = :completed WHERE id = :id");
+$stmt->execute(['completed' => true, 'id' => $taskId]);
+
+// Delete
+$stmt = $pdo->prepare("DELETE FROM tasks WHERE id = :id");
+$stmt->execute(['id' => $taskId]);
+</code></pre>
+  <div class="callout">
+    <b>:named vs ?positional placeholders</b>
+    PDO supports <code>:name</code> placeholders (matched by name, order-independent, very readable) and <code>?</code> placeholders (matched by position). Named placeholders are generally preferred for anything beyond 1-2 parameters because the code stays readable as queries grow.
+  </div>
+
+  <h2>A reusable Database connection class</h2>
+  <p>Rather than opening a connection in every file, wrap it in a class using the <strong>singleton pattern</strong> — a class that ensures only one instance of itself ever exists, shared everywhere it's needed:</p>
+  <pre><code class="language-php">&lt;?php
+// src/Database.php
+class Database {
+    private static ?PDO $instance = null;
+
+    private function __construct() {} // prevent "new Database()" from outside
+
+    public static function getConnection(): PDO {
+        if (self::$instance === null) {
+            $dsn = "mysql:host=127.0.0.1;dbname=tutorial_app;charset=utf8mb4";
+            self::$instance = new PDO($dsn, 'root', '', [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            ]);
+        }
+        return self::$instance;
+    }
+}
+
+// Anywhere else in the app:
+$pdo = Database::getConnection();
+</code></pre>
+
+  <h2>Transactions: all-or-nothing operations</h2>
+  <p>Some operations involve multiple related writes that must <em>all</em> succeed or <em>all</em> fail together — e.g. transferring money between two accounts. A <strong>transaction</strong> groups statements so that if anything fails partway through, everything is rolled back.</p>
+  <pre><code class="language-php">&lt;?php
+$pdo->beginTransaction();
+
+try {
+    $pdo->prepare("UPDATE accounts SET balance = balance - :amount WHERE id = :from")
+        ->execute(['amount' => 100, 'from' => 1]);
+
+    $pdo->prepare("UPDATE accounts SET balance = balance + :amount WHERE id = :to")
+        ->execute(['amount' => 100, 'to' => 2]);
+
+    $pdo->commit(); // both updates are saved permanently
+} catch (PDOException $e) {
+    $pdo->rollBack(); // neither update is saved -- balances unchanged
+    throw $e;
+}
+</code></pre>
+  <p>Without a transaction, if the second query failed (network blip, constraint violation), the first would already be committed — money would vanish from one account without appearing in the other.</p>
+
+  <h2>Fetch modes</h2>
+  <p>We set <code>PDO::FETCH_ASSOC</code> as the default, but PDO supports several fetch styles depending on what shape of data you need:</p>
+  <pre><code class="language-php">&lt;?php
+$stmt = $pdo->query("SELECT * FROM tasks");
+
+$stmt->fetch(PDO::FETCH_ASSOC);   // ['id' => 1, 'title' => 'Buy milk', ...]
+$stmt->fetch(PDO::FETCH_OBJ);     // stdClass object: $row->id, $row->title
+$stmt->fetch(PDO::FETCH_NUM);     // [0 => 1, 1 => 'Buy milk', ...] -- numeric indices
+$stmt->fetchAll(PDO::FETCH_COLUMN, 0); // a flat array of just the first column's values
+</code></pre>
+
+  <h2>Counting and aggregate queries</h2>
+  <pre><code class="language-php">&lt;?php
+// Single scalar value -- fetchColumn() avoids the overhead of fetching a full row
+$stmt = $pdo->query("SELECT COUNT(*) FROM tasks WHERE completed = 0");
+$pendingCount = $stmt->fetchColumn();
+
+// Parameterized aggregate
+$stmt = $pdo->prepare("SELECT COUNT(*) FROM tasks WHERE created_at >= :since");
+$stmt->execute(['since' => date('Y-m-d', strtotime('-7 days'))]);
+$recentCount = $stmt->fetchColumn();
+</code></pre>
+
+  <h2>Indexes: why queries get slow</h2>
+  <p>Without an index, <code>WHERE</code> clauses force the database to scan every row ("full table scan"). An index is a sorted lookup structure on one or more columns that makes lookups fast — at the cost of slightly slower writes and extra storage.</p>
+  <pre><code class="language-sql">-- Speeds up WHERE completed = ... and ORDER BY created_at
+CREATE INDEX idx_tasks_completed ON tasks (completed);
+CREATE INDEX idx_tasks_created_at ON tasks (created_at);</code></pre>
+  <p>Primary keys and (usually) foreign keys are indexed automatically. As a rule of thumb: any column you frequently filter (<code>WHERE</code>), sort (<code>ORDER BY</code>), or join on is a candidate for an index. We'll revisit this when Laravel migrations define foreign keys.</p>
+  `
+},
+
+{
+  id: "php-crud",
+  track: "php",
+  title: "Building a CRUD App",
+  html: `
+  <h2>Putting it together: a Task Manager</h2>
+  <p>We now have everything needed to build a real, working application: variables, control flow, functions, OOP, sessions, and a database. Let's build a small task manager with full CRUD (Create, Read, Update, Delete) and a clean folder structure.</p>
+
+  <h3>Project structure</h3>
+  <pre><code class="language-text">task-manager/
+├── public/
+│   └── index.php        # entry point + router
+├── src/
+│   ├── Database.php
+│   └── TaskRepository.php
+├── views/
+│   ├── index.php
+│   └── form.php
+└── .env</code></pre>
+
+  <h2>The Repository pattern</h2>
+  <p>A <strong>repository</strong> is a class whose only job is to talk to the database for one type of "thing" (here, Tasks). This keeps SQL out of your routing/view code and makes it easy to test or swap the storage layer later.</p>
+  <pre><code class="language-php">&lt;?php
+// src/TaskRepository.php
+class TaskRepository {
+    public function __construct(private PDO $pdo) {}
+
+    public function all(): array {
+        return $this->pdo->query("SELECT * FROM tasks ORDER BY created_at DESC")->fetchAll();
+    }
+
+    public function find(int $id): array|false {
+        $stmt = $this->pdo->prepare("SELECT * FROM tasks WHERE id = :id");
+        $stmt->execute(['id' => $id]);
+        return $stmt->fetch();
+    }
+
+    public function create(string $title): int {
+        $stmt = $this->pdo->prepare("INSERT INTO tasks (title) VALUES (:title)");
+        $stmt->execute(['title' => $title]);
+        return (int) $this->pdo->lastInsertId();
+    }
+
+    public function toggleComplete(int $id): void {
+        $stmt = $this->pdo->prepare(
+            "UPDATE tasks SET completed = NOT completed WHERE id = :id"
+        );
+        $stmt->execute(['id' => $id]);
+    }
+
+    public function delete(int $id): void {
+        $stmt = $this->pdo->prepare("DELETE FROM tasks WHERE id = :id");
+        $stmt->execute(['id' => $id]);
+    }
+}
+</code></pre>
+
+  <h2>A simple front controller</h2>
+  <p>Instead of one PHP file per "page", we'll route everything through <code>public/index.php</code> based on a <code>?action=</code> query parameter — a simplified version of what frameworks do with proper routers.</p>
+  <pre><code class="language-php">&lt;?php
+// public/index.php
+require __DIR__ . '/../src/Database.php';
+require __DIR__ . '/../src/TaskRepository.php';
+
+$repo = new TaskRepository(Database::getConnection());
+$action = $_GET['action'] ?? 'list';
+
+switch ($action) {
+    case 'create':
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $title = trim($_POST['title'] ?? '');
+            if ($title !== '') {
+                $repo->create($title);
+            }
+            header('Location: /index.php'); // redirect after POST (prevents resubmission)
+            exit;
+        }
+        break;
+
+    case 'toggle':
+        $repo->toggleComplete((int) $_GET['id']);
+        header('Location: /index.php');
+        exit;
+
+    case 'delete':
+        $repo->delete((int) $_GET['id']);
+        header('Location: /index.php');
+        exit;
+}
+
+$tasks = $repo->all();
+require __DIR__ . '/../views/index.php';
+</code></pre>
+
+  <h2>The view</h2>
+  <pre><code class="language-php">&lt;?php // views/index.php ?&gt;
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;&lt;title&gt;Task Manager&lt;/title&gt;&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;My Tasks&lt;/h1&gt;
+
+  &lt;form action="?action=create" method="POST"&gt;
+    &lt;input type="text" name="title" placeholder="New task..." required&gt;
+    &lt;button type="submit"&gt;Add&lt;/button&gt;
+  &lt;/form&gt;
+
+  &lt;ul&gt;
+  &lt;?php foreach ($tasks as $task): ?&gt;
+    &lt;li style="&lt;?= $task['completed'] ? 'text-decoration: line-through' : '' ?&gt;"&gt;
+      &lt;?= htmlspecialchars($task['title']) ?&gt;
+      &lt;a href="?action=toggle&amp;id=&lt;?= $task['id'] ?&gt;"&gt;Toggle&lt;/a&gt;
+      &lt;a href="?action=delete&amp;id=&lt;?= $task['id'] ?&gt;"&gt;Delete&lt;/a&gt;
+    &lt;/li&gt;
+  &lt;?php endforeach; ?&gt;
+  &lt;/ul&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <div class="callout">
+    <b>The redirect-after-POST pattern</b>
+    Notice that after creating, toggling, or deleting a task, we call <code>header('Location: ...')</code> and <code>exit</code> rather than rendering the view directly. This is the standard "POST/Redirect/GET" pattern — it prevents the browser's "submit again?" warning if the user refreshes the page, because the refresh re-runs a GET request, not the original POST.
+  </div>
+
+  <h2>Adding search and filtering</h2>
+  <p>Real list views almost always need filtering. Add an optional search term and a status filter to the repository and front controller:</p>
+  <pre><code class="language-php">&lt;?php
+// TaskRepository.php
+public function search(?string $term, ?bool $completed): array {
+    $sql = "SELECT * FROM tasks WHERE 1=1";
+    $params = [];
+
+    if ($term !== null && $term !== '') {
+        $sql .= " AND title LIKE :term";
+        $params['term'] = "%$term%";
+    }
+    if ($completed !== null) {
+        $sql .= " AND completed = :completed";
+        $params['completed'] = $completed;
+    }
+
+    $sql .= " ORDER BY created_at DESC";
+
+    $stmt = $this->pdo->prepare($sql);
+    $stmt->execute($params);
+    return $stmt->fetchAll();
+}
+</code></pre>
+  <pre><code class="language-php">&lt;?php
+// public/index.php
+$term = $_GET['q'] ?? null;
+$completedParam = $_GET['completed'] ?? null;
+$completed = $completedParam === null ? null : (bool) $completedParam;
+
+$tasks = $repo->search($term, $completed);
+</code></pre>
+  <div class="callout warn">
+    <b>The "WHERE 1=1" trick</b>
+    Starting the SQL string with a condition that's always true lets every subsequent filter be appended with <code>AND ...</code> without worrying about whether it's the "first" condition. It's a small readability win when building queries dynamically, and is completely safe since it's not user input.
+  </div>
+
+  <h2>Pagination</h2>
+  <p>Once a table has thousands of rows, loading them all at once is wasteful. SQL's <code>LIMIT</code>/<code>OFFSET</code> fetch one "page" at a time:</p>
+  <pre><code class="language-php">&lt;?php
+public function paginate(int $page, int $perPage = 10): array {
+    $offset = ($page - 1) * $perPage;
+
+    $stmt = $this->pdo->prepare(
+        "SELECT * FROM tasks ORDER BY created_at DESC LIMIT :limit OFFSET :offset"
+    );
+    // LIMIT/OFFSET must be bound as integers explicitly with PDO::PARAM_INT
+    $stmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
+    $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+    $stmt->execute();
+
+    return $stmt->fetchAll();
+}
+
+public function count(): int {
+    return (int) $this->pdo->query("SELECT COUNT(*) FROM tasks")->fetchColumn();
+}
+</code></pre>
+  <pre><code class="language-php">&lt;?php
+$page = max(1, (int) ($_GET['page'] ?? 1));
+$perPage = 10;
+$tasks = $repo->paginate($page, $perPage);
+$totalPages = (int) ceil($repo->count() / $perPage);
+</code></pre>
+  <pre><code class="language-php">&lt;?php // views/index.php -- pagination links ?&gt;
+&lt;div class="pagination"&gt;
+  &lt;?php for ($i = 1; $i <= $totalPages; $i++): ?&gt;
+    &lt;a href="?page=&lt;?= $i ?&gt;" class="&lt;?= $i === $page ? 'active' : '' ?&gt;"&gt;&lt;?= $i ?&gt;&lt;/a&gt;
+  &lt;?php endfor; ?&gt;
+&lt;/div&gt;</code></pre>
+  <p>Keep this <code>LIMIT</code>/<code>OFFSET</code> approach in mind — when we reach Laravel's <code>Post::paginate(15)</code>, it's executing exactly this pattern, plus computing <code>$totalPages</code> and generating the links automatically.</p>
+  `
+},
+
+{
+  id: "php-rest-api",
+  track: "php",
+  title: "Building a REST API in Plain PHP",
+  html: `
+  <h2>What makes an API "RESTful"</h2>
+  <p>REST (Representational State Transfer) is a set of conventions for designing APIs around <strong>resources</strong> (nouns, like "tasks") and standard HTTP methods (verbs):</p>
+  <ul>
+    <li><code>GET /tasks</code> — list all tasks</li>
+    <li><code>GET /tasks/5</code> — get task with id 5</li>
+    <li><code>POST /tasks</code> — create a new task</li>
+    <li><code>PUT/PATCH /tasks/5</code> — update task 5</li>
+    <li><code>DELETE /tasks/5</code> — delete task 5</li>
+  </ul>
+  <p>Instead of returning HTML, an API returns <strong>JSON</strong>, and uses HTTP status codes meaningfully (200 OK, 201 Created, 404 Not Found, 422 Unprocessable Entity, etc).</p>
+
+  <h2>Setting the right headers</h2>
+  <pre><code class="language-php">&lt;?php
+header('Content-Type: application/json');
+
+// CORS headers -- required if your frontend (e.g. a React app) runs on a
+// different origin/port than your API
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization');
+
+// Browsers send a "preflight" OPTIONS request before real requests for
+// non-simple methods -- respond and stop immediately
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit;
+}
+</code></pre>
+
+  <h2>A minimal router</h2>
+  <p>Real frameworks have sophisticated routers, but the core idea is simple: inspect the URL path and HTTP method, then call the matching handler.</p>
+  <pre><code class="language-php">&lt;?php
+// public/api.php
+require __DIR__ . '/../src/Database.php';
+require __DIR__ . '/../src/TaskRepository.php';
+
+header('Content-Type: application/json');
+
+$repo = new TaskRepository(Database::getConnection());
+$method = $_SERVER['REQUEST_METHOD'];
+
+// Strip the script's own path so /api.php/tasks/5 -> /tasks/5
+$path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+$path = trim(str_replace('/api.php', '', $path), '/');
+$segments = explode('/', $path); // e.g. ['tasks', '5']
+
+$resource = $segments[0] ?? null;
+$id = isset($segments[1]) ? (int) $segments[1] : null;
+
+function jsonResponse(mixed $data, int $status = 200): never {
+    http_response_code($status);
+    echo json_encode($data);
+    exit;
+}
+
+if ($resource !== 'tasks') {
+    jsonResponse(['error' => 'Not found'], 404);
+}
+
+match (true) {
+    $method === 'GET' && $id === null   => jsonResponse($repo->all()),
+    $method === 'GET' && $id !== null   => handleShow($repo, $id),
+    $method === 'POST'                  => handleCreate($repo),
+    $method === 'PUT' || $method === 'PATCH' => handleUpdate($repo, $id),
+    $method === 'DELETE'                => handleDelete($repo, $id),
+    default => jsonResponse(['error' => 'Method not allowed'], 405),
+};
+
+function handleShow(TaskRepository $repo, int $id): never {
+    $task = $repo->find($id);
+    $task ? jsonResponse($task) : jsonResponse(['error' => 'Task not found'], 404);
+}
+
+function handleCreate(TaskRepository $repo): never {
+    $input = json_decode(file_get_contents('php://input'), true);
+
+    $title = trim($input['title'] ?? '');
+    if ($title === '') {
+        jsonResponse(['error' => 'The title field is required'], 422);
+    }
+
+    $id = $repo->create($title);
+    jsonResponse($repo->find($id), 201);
+}
+
+function handleUpdate(TaskRepository $repo, ?int $id): never {
+    if ($id === null || !$repo->find($id)) {
+        jsonResponse(['error' => 'Task not found'], 404);
+    }
+    $repo->toggleComplete($id);
+    jsonResponse($repo->find($id));
+}
+
+function handleDelete(TaskRepository $repo, ?int $id): never {
+    if ($id === null || !$repo->find($id)) {
+        jsonResponse(['error' => 'Task not found'], 404);
+    }
+    $repo->delete($id);
+    jsonResponse(null, 204);
+}
+</code></pre>
+
+  <h2>Reading the request body</h2>
+  <p>For JSON APIs, clients send data in the request <em>body</em> as JSON, not as <code>$_POST</code> form fields. You read it with <code>php://input</code>:</p>
+  <pre><code class="language-php">&lt;?php
+$rawBody = file_get_contents('php://input');
+$data = json_decode($rawBody, true);
+// $data is now a normal associative array, e.g. ['title' => 'Buy milk']
+</code></pre>
+
+  <h2>Testing the API</h2>
+  <p>To try these endpoints, we need something that can send HTTP requests with a chosen method, headers, and body — a browser's address bar only sends simple <code>GET</code> requests. <strong>curl</strong> is a command-line tool for making HTTP requests, pre-installed on macOS and most Linux distributions (and available for Windows). Each flag below maps directly to a part of the request: <code>-X</code> sets the HTTP method, <code>-H</code> adds a header, and <code>-d</code> sends a request body.</p>
+  <pre><code class="language-bash"># List tasks
+curl http://localhost:8000/api.php/tasks
+
+# Create a task
+curl -X POST http://localhost:8000/api.php/tasks \\
+  -H "Content-Type: application/json" \\
+  -d '{"title": "Learn PHP APIs"}'
+
+# Get one task
+curl http://localhost:8000/api.php/tasks/1
+
+# Delete
+curl -X DELETE http://localhost:8000/api.php/tasks/1</code></pre>
+
+  <div class="callout">
+    <b>What this exercise teaches</b>
+    Building this by hand shows you exactly what a framework router, request object, and response object are <em>for</em>. When you reach Laravel's <code>Route::apiResource()</code>, you'll recognize it as a clean abstraction over the match-on-method-and-path pattern you just wrote yourself.
+  </div>
+
+  <h2>Pagination in APIs</h2>
+  <p>JSON APIs paginate the same way, but the metadata travels alongside the data so clients know how to fetch the next page:</p>
+  <pre><code class="language-php">&lt;?php
+$page = max(1, (int) ($_GET['page'] ?? 1));
+$perPage = 10;
+
+$tasks = $repo->paginate($page, $perPage);
+$total = $repo->count();
+
+jsonResponse([
+    'data' => $tasks,
+    'meta' => [
+        'page' => $page,
+        'per_page' => $perPage,
+        'total' => $total,
+        'total_pages' => (int) ceil($total / $perPage),
+    ],
+]);
+</code></pre>
+
+  <h2>Versioning your API</h2>
+  <p>Once an API has real consumers, changing response shapes can break their code. <strong>Versioning</strong> lets you evolve the API while old clients keep working. The simplest approach is a version segment in the URL:</p>
+  <pre><code class="language-text">/api/v1/tasks
+/api/v2/tasks   -- new response shape, new clients opt in</code></pre>
+  <pre><code class="language-php">&lt;?php
+// crude routing example
+$segments = explode('/', trim($path, '/')); // ['v1', 'tasks']
+$version = $segments[0] ?? 'v1';
+$resource = $segments[1] ?? null;
+
+if ($version === 'v1') {
+    require __DIR__ . '/../src/Api/V1/router.php';
+} elseif ($version === 'v2') {
+    require __DIR__ . '/../src/Api/V2/router.php';
+} else {
+    jsonResponse(['error' => 'Unknown API version'], 404);
+}
+</code></pre>
+
+  <h2>Basic rate limiting</h2>
+  <p>Without limits, a single client (or attacker) could hammer your API with thousands of requests per second. A simple approach using a file or cache to track request counts per IP:</p>
+  <pre><code class="language-php">&lt;?php
+function rateLimit(string $key, int $maxRequests, int $windowSeconds): void {
+    $file = sys_get_temp_dir() . '/ratelimit_' . md5($key);
+    $data = file_exists($file) ? json_decode(file_get_contents($file), true) : ['count' => 0, 'reset' => time() + $windowSeconds];
+
+    if (time() > $data['reset']) {
+        $data = ['count' => 0, 'reset' => time() + $windowSeconds];
+    }
+
+    $data['count']++;
+    file_put_contents($file, json_encode($data));
+
+    if ($data['count'] > $maxRequests) {
+        header('Retry-After: ' . ($data['reset'] - time()));
+        jsonResponse(['error' => 'Too many requests'], 429);
+    }
+}
+
+// At the top of api.php
+rateLimit($_SERVER['REMOTE_ADDR'], maxRequests: 60, windowSeconds: 60);
+</code></pre>
+  <p>This file-based approach is fine for learning, but in production you'd use Redis or Memcached for shared, fast counters across multiple servers — which is exactly what Laravel's <code>throttle</code> middleware does (covered later).</p>
+  <div class="callout">
+    <b>What are Redis and Memcached?</b>
+    Both are <strong>in-memory data stores</strong> — they keep data in RAM rather than on disk, making reads and writes extremely fast, at the cost of that data not surviving a restart (unless configured to persist). They're used as a shared, fast layer for things like caching, rate-limit counters, and session storage across multiple web servers. <strong>Redis</strong> is the more feature-rich of the two (supports lists, sets, pub/sub) and is the default choice in most modern PHP/Laravel setups; <strong>Memcached</strong> is simpler and purely a cache. Neither is required to follow this tutorial — file-based or database-based alternatives work fine for development.
+  </div>
+
+  <h2>Returning consistent error shapes</h2>
+  <p>Clients benefit hugely from every error response having the same structure, regardless of what went wrong:</p>
+  <pre><code class="language-php">&lt;?php
+function errorResponse(string $message, int $status, array $details = []): never {
+    jsonResponse([
+        'error' => [
+            'message' => $message,
+            'status' => $status,
+            'details' => $details,
+        ],
+    ], $status);
+}
+
+// Usage
+errorResponse('Validation failed', 422, ['title' => 'The title field is required']);
+errorResponse('Task not found', 404);
+</code></pre>
+  `
+},
+
+{
+  id: "php-security",
+  track: "php",
+  title: "Security Essentials",
+  html: `
+  <h2>Password hashing</h2>
+  <p>Never store passwords in plain text, and never use fast general-purpose hashes like MD5 or SHA-1 for passwords — they're designed to be fast, which makes them easy to brute-force. PHP's built-in <code>password_hash()</code> uses bcrypt by default, which is intentionally slow and includes a random "salt" automatically.</p>
+  <pre><code class="language-php">&lt;?php
+// When a user registers
+$hashed = password_hash($_POST['password'], PASSWORD_DEFAULT);
+// Store $hashed in the database -- NEVER the raw password
+
+// When a user logs in
+$user = $repo->findByEmail($_POST['email']);
+if ($user && password_verify($_POST['password'], $user['password_hash'])) {
+    // correct password
+    session_regenerate_id(true); // prevent session fixation attacks
+    $_SESSION['user_id'] = $user['id'];
+} else {
+    // Use a generic message -- don't reveal whether the email or password was wrong
+    echo "Invalid credentials";
+}
+</code></pre>
+
+  <h2>SQL Injection — recap</h2>
+  <p>Covered in depth earlier: <strong>always</strong> use prepared statements with PDO. Never build SQL strings via concatenation or string interpolation with user input, no matter how "safe" the value looks (even integers from <code>$_GET</code> should go through bound parameters or be explicitly cast with <code>(int)</code>).</p>
+
+  <h2>Cross-Site Scripting (XSS)</h2>
+  <p>XSS happens when user-supplied content is rendered as HTML/JS in someone else's browser. The fix is to escape output with <code>htmlspecialchars()</code> whenever you print user-controlled data into HTML:</p>
+  <pre><code class="language-php">&lt;?php
+// If $comment contains "&lt;script&gt;alert('hacked')&lt;/script&gt;"...
+echo $comment;                       // DANGEROUS: script executes in the browser
+echo htmlspecialchars($comment);     // SAFE: renders as literal text
+</code></pre>
+
+  <h2>Cross-Site Request Forgery (CSRF)</h2>
+  <p>CSRF tricks a logged-in user's browser into submitting a request to your site without their knowledge (e.g. via a malicious link or auto-submitting form on another site). The defense is a unique, unpredictable <strong>token</strong> embedded in every form, which the server verifies on submission.</p>
+  <pre><code class="language-php">&lt;?php
+// Generating a token (store it in the session)
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+$token = $_SESSION['csrf_token'];
+</code></pre>
+  <pre><code class="language-html">&lt;form method="POST" action="/process.php"&gt;
+  &lt;input type="hidden" name="csrf_token" value="&lt;?= $token ?&gt;"&gt;
+  ...
+&lt;/form&gt;</code></pre>
+  <pre><code class="language-php">&lt;?php
+// Verifying on submission -- hash_equals() prevents timing attacks
+if (!hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'] ?? '')) {
+    http_response_code(419);
+    exit('Invalid CSRF token');
+}
+</code></pre>
+  <p>Laravel does all of this automatically via the <code>@csrf</code> Blade directive and <code>VerifyCsrfToken</code> middleware — but knowing what it's protecting against is what makes that middleware make sense.</p>
+
+  <h2>Validating and sanitizing input</h2>
+  <pre><code class="language-php">&lt;?php
+filter_var('user@example.com', FILTER_VALIDATE_EMAIL); // returns the email or false
+filter_var('not-a-number', FILTER_VALIDATE_INT);        // false
+filter_var('123', FILTER_VALIDATE_INT);                 // 123 (int)
+
+// Type-casting is also a form of validation
+$page = (int) ($_GET['page'] ?? 1);  // "abc" becomes 0, "5abc" becomes 5
+$page = max(1, $page);               // enforce a minimum
+</code></pre>
+
+  <h2>HTTPS and security headers</h2>
+  <p>In production, always serve over HTTPS (so credentials and session cookies can't be intercepted), and configure session cookies with <code>secure</code>, <code>httponly</code>, and <code>samesite</code> flags:</p>
+  <pre><code class="language-php">&lt;?php
+session_set_cookie_params([
+    'secure' => true,    // only sent over HTTPS
+    'httponly' => true,  // inaccessible to JavaScript -- mitigates XSS cookie theft
+    'samesite' => 'Lax', // mitigates CSRF
+]);
+session_start();
+</code></pre>
+  <div class="callout">
+    <b>The big picture</b>
+    Every one of these protections corresponds to a feature Laravel gives you "for free": hashed passwords via <code>Hash::make()</code>, Eloquent's parameter binding, Blade's automatic escaping with <code>{{ }}</code>, CSRF middleware, and validation rules. You're not learning these to reinvent them forever — you're learning them so the framework's defaults make sense and so you can debug when something doesn't behave as expected.
+  </div>
+
+  <h2>Brute-force protection on login</h2>
+  <p>Without protection, an attacker can try thousands of password guesses per second against a login form. Combine rate limiting (from the API chapter) with account-level lockouts:</p>
+  <pre><code class="language-php">&lt;?php
+$attempts = $_SESSION['login_attempts'] ?? 0;
+$lockedUntil = $_SESSION['locked_until'] ?? 0;
+
+if (time() < $lockedUntil) {
+    exit('Too many failed attempts. Try again later.');
+}
+
+if (!password_verify($_POST['password'], $user['password_hash'])) {
+    $attempts++;
+    $_SESSION['login_attempts'] = $attempts;
+
+    if ($attempts >= 5) {
+        $_SESSION['locked_until'] = time() + (60 * 5); // 5-minute lockout
+    }
+    exit('Invalid credentials');
+}
+
+// success -- reset counters
+unset($_SESSION['login_attempts'], $_SESSION['locked_until']);
+</code></pre>
+
+  <h2>Mass assignment</h2>
+  <p>If you ever build an "update profile" form by looping over <code>$_POST</code> and writing each field directly to the database, you've created a mass-assignment vulnerability: an attacker can add an extra field like <code>is_admin=1</code> to the form submission.</p>
+  <pre><code class="language-php">&lt;?php
+// DANGEROUS -- updates ANY column the attacker includes in the POST body
+foreach ($_POST as $key => $value) {
+    $fields[] = "$key = :$key";
+}
+$pdo->prepare("UPDATE users SET " . implode(', ', $fields) . " WHERE id = :id")
+    ->execute([...$_POST, 'id' => $userId]);
+
+// SAFE -- explicitly whitelist which fields can be updated
+$allowed = ['name', 'email', 'bio'];
+$updates = array_intersect_key($_POST, array_flip($allowed));
+</code></pre>
+  <p>This is precisely the problem Eloquent's <code>$fillable</code> property (seen in the Laravel track) solves at the framework level.</p>
+
+  <h2>Dependency security</h2>
+  <p>Every Composer package you install is code you're trusting to run inside your application. Keep dependencies updated and check for known vulnerabilities:</p>
+  <pre><code class="language-bash">composer outdated         # see which packages have newer versions
+composer audit             # check installed packages against known CVEs</code></pre>
+
+  <h2>A security checklist for going live</h2>
+  <ul>
+    <li>All user input validated and/or escaped before use (SQL, HTML, file paths, shell commands)</li>
+    <li>Passwords hashed with <code>password_hash()</code>, never reversible encryption</li>
+    <li><code>display_errors</code> off, errors logged instead</li>
+    <li>HTTPS enforced, secure session cookie flags set</li>
+    <li>CSRF tokens on all state-changing forms</li>
+    <li>Rate limiting on authentication and public API endpoints</li>
+    <li><code>.env</code> excluded from version control and the web root</li>
+    <li>Dependencies kept up to date</li>
+  </ul>
+  `
+},
+
+/* ===================== LARAVEL TRACK ===================== */
+
+{
+  id: "laravel-intro",
+  track: "laravel",
+  title: "Introduction to Laravel",
+  html: `
+  <h2>What Laravel gives you</h2>
+  <p>Everything in the PHP track — routing, request/response handling, database access, validation, security — Laravel provides as polished, well-tested, conventionally-organized components. Laravel is an implementation of the <strong>MVC (Model-View-Controller)</strong> architectural pattern:</p>
+  <ul>
+    <li><strong>Model</strong> — represents data and business rules (built on Eloquent, Laravel's ORM)</li>
+    <li><strong>View</strong> — what gets rendered to the user (Blade templates)</li>
+    <li><strong>Controller</strong> — receives requests, talks to models, returns a view or response</li>
+  </ul>
+  <p>Recognize this? It's the same separation you built by hand in the CRUD chapter: <code>TaskRepository</code> (Model-ish), <code>views/index.php</code> (View), and <code>index.php</code>'s routing logic (Controller-ish). Laravel formalizes and extends that structure.</p>
+
+  <h2>Installation</h2>
+  <p>Laravel requires Composer (PHP's package manager) and PHP 8.2+. Create a new project:</p>
+  <pre><code class="language-bash"># Install the Laravel installer (one-time)
+composer global require laravel/installer
+
+# Create a new project
+laravel new my-app
+cd my-app
+
+# Or directly via Composer without the installer
+composer create-project laravel/laravel my-app
+
+# Run the development server
+php artisan serve</code></pre>
+  <p>Visit <code>http://localhost:8000</code> — you should see the Laravel welcome page.</p>
+
+  <h2>Project structure tour</h2>
+  <pre><code class="language-text">my-app/
+├── app/
+│   ├── Http/
+│   │   ├── Controllers/   # request handlers
+│   │   └── Middleware/     # request/response filters
+│   ├── Models/             # Eloquent models
+│   └── Providers/          # service registration
+├── routes/
+│   ├── web.php             # routes returning HTML/views
+│   └── api.php             # routes returning JSON
+├── database/
+│   ├── migrations/         # version-controlled schema changes
+│   └── seeders/            # sample/test data
+├── resources/
+│   └── views/               # Blade templates
+├── config/                  # configuration files
+├── .env                     # environment-specific config (DB credentials etc.)
+└── artisan                  # command-line tool</code></pre>
+
+  <h2>Artisan: Laravel's CLI</h2>
+  <p>Artisan is Laravel's command-line tool for code generation, database tasks, and maintenance. You'll use it constantly:</p>
+  <pre><code class="language-bash">php artisan serve              # start dev server
+php artisan make:controller PostController
+php artisan make:model Post
+php artisan make:migration create_posts_table
+php artisan migrate            # run pending migrations
+php artisan route:list         # show all registered routes
+php artisan tinker             # interactive PHP REPL with app loaded</code></pre>
+
+  <h2>The .env file and config</h2>
+  <p>Remember the hand-rolled <code>.env</code> loader from the plain-PHP track? Laravel does exactly that, automatically, on every request, via the <code>vlucas/phpdotenv</code> package. Values are accessed through <code>config()</code> helpers rather than <code>getenv()</code> directly — config files in <code>config/</code> read from <code>env()</code> once and cache the result:</p>
+  <pre><code class="language-bash"># .env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=my_app
+DB_USERNAME=root
+DB_PASSWORD=</code></pre>
+  <pre><code class="language-php">&lt;?php
+// config/database.php (excerpt) -- reads from .env, falls back to defaults
+'mysql' => [
+    'host' => env('DB_HOST', '127.0.0.1'),
+    'database' => env('DB_DATABASE', 'forge'),
+    'username' => env('DB_USERNAME', 'forge'),
+],
+</code></pre>
+  <div class="callout">
+    <b>Why this matters</b>
+    Once you've built a config loader by hand, you know <em>why</em> Laravel caches config in production (<code>php artisan config:cache</code>) — reading and parsing <code>.env</code> on every single request, like our hand-rolled version did, is genuinely slow at scale.
+  </div>
+
+  <h2>Tinker: a REPL for your app</h2>
+  <p><code>php artisan tinker</code> opens an interactive PHP shell with your entire Laravel application already loaded — models, config, helpers, everything. It's invaluable for quick experiments without writing a route or controller:</p>
+  <pre><code class="language-bash">php artisan tinker</code></pre>
+  <pre><code class="language-php">&gt;&gt;&gt; User::count()
+=&gt; 12
+
+&gt;&gt;&gt; User::first()
+=&gt; App\Models\User {#...}
+
+&gt;&gt;&gt; User::create(['name' => 'Test', 'email' => 'test@example.com', 'password' => bcrypt('secret')])
+
+&gt;&gt;&gt; config('app.name')
+=&gt; "Laravel"
+</code></pre>
+
+  <h2>The service container, briefly</h2>
+  <p>Recall the hand-rolled DI container from the plain-PHP track — a <code>Container</code> class that knew how to build objects and resolve their dependencies. Laravel's <strong>service container</strong> is the production-grade version of exactly that idea, and it underlies almost everything: when a controller method type-hints a class, Laravel's container resolves it automatically.</p>
+  <pre><code class="language-php">&lt;?php
+// Laravel resolves TaskRepository (and whatever IT depends on) automatically
+class TaskController extends Controller {
+    public function index(TaskRepository $repo) {
+        return $repo->all();
+    }
+}
+
+// You can also resolve things manually
+$repo = app(TaskRepository::class);
+// or
+$repo = resolve(TaskRepository::class);
+</code></pre>
+  <p>For most day-to-day Laravel work you won't interact with the container directly — but understanding that it exists explains "magic" like why type-hinting a class in a constructor or controller method just works.</p>
+
+  <h2>Artisan commands you'll reach for constantly</h2>
+  <pre><code class="language-bash">php artisan make:controller PostController
+php artisan make:model Post -m          # -m also creates a migration
+php artisan make:migration add_status_to_posts_table
+php artisan make:request StorePostRequest
+php artisan make:resource PostResource
+php artisan make:factory PostFactory
+php artisan make:seeder PostSeeder
+php artisan db:seed                      # run seeders
+php artisan tinker                       # interactive shell
+php artisan route:list --path=posts      # filter routes by path</code></pre>
+  `
+},
+
+{
+  id: "laravel-routing-blade",
+  track: "laravel",
+  title: "Routing, Controllers & Blade",
+  html: `
+  <h2>Defining routes</h2>
+  <p>Routes live in <code>routes/web.php</code> (for browser-facing pages) and <code>routes/api.php</code> (for JSON APIs). A route maps a URL + HTTP method to a piece of code.</p>
+  <pre><code class="language-php">&lt;?php
+// routes/web.php
+use Illuminate\\Support\\Facades\\Route;
+use App\\Http\\Controllers\\PostController;
+
+Route::get('/', function () {
+    return view('welcome');
+});
+
+Route::get('/posts', [PostController::class, 'index']);
+Route::get('/posts/{id}', [PostController::class, 'show']);
+Route::post('/posts', [PostController::class, 'store']);
+Route::put('/posts/{id}', [PostController::class, 'update']);
+Route::delete('/posts/{id}', [PostController::class, 'destroy']);
+
+// Route parameters can be type-constrained
+Route::get('/posts/{id}', [PostController::class, 'show'])->whereNumber('id');
+</code></pre>
+  <p>Notice this is the exact same set of (method, path) pairs you wrote a <code>match</code> statement for in the plain-PHP API chapter — Laravel's router is doing the same job, just registered declaratively and matched internally with much more sophistication (named routes, groups, middleware, etc).</p>
+
+  <h2>Resource routes — the shortcut</h2>
+  <p>Because CRUD routes follow such a predictable pattern, Laravel provides a one-liner:</p>
+  <pre><code class="language-php">&lt;?php
+Route::resource('posts', PostController::class);
+// Generates all 7 routes: index, create, store, show, edit, update, destroy</code></pre>
+  <p>Run <code>php artisan route:list</code> to see exactly what that expands to.</p>
+
+  <h2>Controllers</h2>
+  <pre><code class="language-bash">php artisan make:controller PostController --resource</code></pre>
+  <pre><code class="language-php">&lt;?php
+namespace App\\Http\\Controllers;
+
+use App\\Models\\Post;
+use Illuminate\\Http\\Request;
+
+class PostController extends Controller
+{
+    public function index()
+    {
+        $posts = Post::latest()->get(); // Eloquent -- covered in depth next chapter
+        return view('posts.index', ['posts' => $posts]);
+    }
+
+    public function show(int $id)
+    {
+        $post = Post::findOrFail($id); // 404s automatically if not found
+        return view('posts.show', ['post' => $post]);
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'body' => 'required|string',
+        ]);
+
+        $post = Post::create($validated);
+
+        return redirect()->route('posts.show', $post->id)
+            ->with('success', 'Post created!');
+    }
+}
+</code></pre>
+  <p>Compare <code>Post::findOrFail($id)</code> to the plain-PHP <code>TaskRepository::find()</code> — same idea (look up a row by id), but Eloquent throws a <code>ModelNotFoundException</code> automatically, which Laravel's exception handler converts into a 404 response. That's the "uncaught exception → exception handler" pattern from the error-handling chapter, applied at the framework level.</p>
+
+  <h2>Blade templates</h2>
+  <p>Blade is Laravel's templating engine. Blade files end in <code>.blade.php</code> and live in <code>resources/views</code>.</p>
+  <pre><code class="language-blade">{{-- resources/views/posts/index.blade.php --}}
+@extends('layouts.app')
+
+@section('content')
+  &lt;h1&gt;All Posts&lt;/h1&gt;
+
+  @if ($posts->isEmpty())
+    &lt;p&gt;No posts yet.&lt;/p&gt;
+  @else
+    &lt;ul&gt;
+      @foreach ($posts as $post)
+        &lt;li&gt;
+          &lt;a href="{{ route('posts.show', $post->id) }}"&gt;{{ $post->title }}&lt;/a&gt;
+        &lt;/li&gt;
+      @endforeach
+    &lt;/ul&gt;
+  @endif
+@endsection</code></pre>
+  <p><code>{{ $post->title }}</code> automatically runs through <code>htmlspecialchars()</code> — this is Blade's built-in XSS protection, the same escaping you did manually in plain PHP. If you genuinely need raw, unescaped HTML output (rare, and only for trusted content), use <code>{!! $raw !!}</code>.</p>
+
+  <h3>Layouts and includes</h3>
+  <pre><code class="language-blade">{{-- resources/views/layouts/app.blade.php --}}
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;&lt;title&gt;My App&lt;/title&gt;&lt;/head&gt;
+&lt;body&gt;
+  @include('partials.nav')
+
+  &lt;main&gt;@yield('content')&lt;/main&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <p><code>@extends</code>, <code>@section</code>/<code>@yield</code>, and <code>@include</code> are how Blade avoids repeating your <code>&lt;html&gt;</code>, <code>&lt;head&gt;</code>, navigation, etc on every page — the templating equivalent of the <code>require</code>-based partials you'd write in plain PHP.</p>
+
+  <h2>Route groups</h2>
+  <p>Group related routes to share a prefix, middleware, or namespace without repeating yourself:</p>
+  <pre><code class="language-php">&lt;?php
+Route::prefix('admin')->middleware(['auth', 'admin'])->group(function () {
+    Route::get('/dashboard', [AdminController::class, 'dashboard']);
+    Route::get('/users', [AdminController::class, 'users']);
+    // both become /admin/dashboard and /admin/users, both require auth+admin middleware
+});
+
+// Named route groups -- useful for generating URLs consistently
+Route::name('admin.')->group(function () {
+    Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+    // referenced elsewhere as route('admin.dashboard')
+});
+</code></pre>
+
+  <h2>Named routes</h2>
+  <p>Hardcoding URLs throughout your views and controllers is fragile -- if a URL changes, every reference breaks. Named routes let you refer to a route by name instead:</p>
+  <pre><code class="language-php">&lt;?php
+Route::get('/posts/{id}', [PostController::class, 'show'])->name('posts.show');
+</code></pre>
+  <pre><code class="language-blade">&lt;a href="{{ route('posts.show', $post->id) }}"&gt;{{ $post->title }}&lt;/a&gt;</code></pre>
+  <p>If <code>/posts/{id}</code> later becomes <code>/articles/{id}</code>, you only update the route definition -- every <code>route('posts.show', ...)</code> call across hundreds of views keeps working unchanged.</p>
+
+  <h2>Blade components</h2>
+  <p>For reusable UI pieces (a button, a card, an alert), Blade components are cleaner than <code>@include</code> -- they accept props like mini-templates with their own logic:</p>
+  <pre><code class="language-bash">php artisan make:component Alert</code></pre>
+  <pre><code class="language-php">&lt;?php
+// app/View/Components/Alert.php
+class Alert extends Component {
+    public function __construct(public string $type = 'info') {}
+
+    public function render() {
+        return view('components.alert');
+    }
+}
+</code></pre>
+  <pre><code class="language-blade">{{-- resources/views/components/alert.blade.php --}}
+&lt;div class="alert alert-{{ $type }}"&gt;
+  {{ $slot }}
+&lt;/div&gt;</code></pre>
+  <pre><code class="language-blade">{{-- Usage in any view --}}
+&lt;x-alert type="success"&gt;
+  Post created successfully!
+&lt;/x-alert&gt;</code></pre>
+
+  <h2>Common Blade directives reference</h2>
+  <pre><code class="language-blade">{{-- Output (auto-escaped) --}}
+{{ $variable }}
+
+{{-- Conditionals --}}
+@if($condition) ... @elseif(...) ... @else ... @endif
+@unless($condition) ... @endunless
+
+{{-- Loops --}}
+@foreach($items as $item) ... @endforeach
+@forelse($items as $item) ... @empty No items @endforelse
+
+{{-- Loop variable --}}
+@foreach($items as $item)
+  {{ $loop->index }} / {{ $loop->count }} -- {{ $loop->first ? 'first!' : '' }}
+@endforeach
+
+{{-- CSRF token for forms --}}
+&lt;form method="POST"&gt;
+  @csrf
+  @method('PUT') {{-- spoof PUT/DELETE, since HTML forms only support GET/POST --}}
+&lt;/form&gt;</code></pre>
+  `
+},
+
+{
+  id: "laravel-eloquent",
+  track: "laravel",
+  title: "Eloquent ORM & Migrations",
+  html: `
+  <h2>Migrations: version control for your database schema</h2>
+  <p>A migration is a PHP class describing a change to your database schema (creating a table, adding a column, etc). Migrations are run in order and tracked in a <code>migrations</code> table, so every developer and every environment (local, staging, production) ends up with an identical schema by running the same commands.</p>
+  <pre><code class="language-bash">php artisan make:migration create_posts_table</code></pre>
+  <pre><code class="language-php">&lt;?php
+// database/migrations/xxxx_create_posts_table.php
+use Illuminate\\Database\\Migrations\\Migration;
+use Illuminate\\Database\\Schema\\Blueprint;
+use Illuminate\\Support\\Facades\\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('posts', function (Blueprint $table) {
+            $table->id();                                  // auto-incrementing primary key
+            $table->string('title');
+            $table->text('body');
+            $table->foreignId('user_id')->constrained();   // foreign key to users.id
+            $table->boolean('published')->default(false);
+            $table->timestamps();                          // created_at, updated_at
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('posts');
+    }
+};
+</code></pre>
+  <pre><code class="language-bash">php artisan migrate           # apply pending migrations
+php artisan migrate:rollback  # undo the last batch
+php artisan migrate:fresh     # drop everything and re-run from scratch</code></pre>
+  <p>Compare this to the raw <code>CREATE TABLE</code> statement we wrote by hand earlier — migrations are that same SQL, but expressed in PHP, versioned in Git alongside your code, and reversible.</p>
+
+  <h2>Eloquent Models</h2>
+  <pre><code class="language-bash">php artisan make:model Post</code></pre>
+  <pre><code class="language-php">&lt;?php
+namespace App\\Models;
+
+use Illuminate\\Database\\Eloquent\\Model;
+
+class Post extends Model
+{
+    // Eloquent assumes table name "posts" (snake_case, plural of class name)
+    // and a primary key column "id" -- override with $table / $primaryKey if needed
+
+    protected $fillable = ['title', 'body', 'user_id', 'published'];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+}
+</code></pre>
+  <p><code>$fillable</code> is a security feature: it whitelists which attributes can be set via mass-assignment (e.g. <code>Post::create($request->all())</code>). Without it, an attacker could potentially set <em>any</em> column — including things like <code>is_admin</code> — by adding extra fields to a form submission.</p>
+
+  <h2>Querying with the Eloquent Query Builder</h2>
+  <pre><code class="language-php">&lt;?php
+// All of these compile to prepared statements under the hood -- no manual escaping needed
+
+Post::all();                                    // SELECT * FROM posts
+Post::find(5);                                  // SELECT * FROM posts WHERE id = 5
+Post::findOrFail(5);                            // same, but 404s if not found
+Post::where('published', true)->get();          // SELECT * FROM posts WHERE published = 1
+Post::where('title', 'like', '%laravel%')->get();
+Post::orderBy('created_at', 'desc')->limit(10)->get();
+Post::where('published', true)->latest()->paginate(15); // pagination built in
+
+// Creating
+$post = Post::create([
+    'title' => 'Hello Eloquent',
+    'body' => '...',
+    'user_id' => auth()->id(),
+]);
+
+// Updating
+$post = Post::find(5);
+$post->title = 'Updated title';
+$post->save();
+// or in one line:
+Post::find(5)->update(['title' => 'Updated title']);
+
+// Deleting
+Post::find(5)->delete();
+</code></pre>
+
+  <h2>Relationships</h2>
+  <p>This is where Eloquent shines compared to hand-written SQL. Define relationships once on the model, then traverse them like properties:</p>
+  <pre><code class="language-php">&lt;?php
+class User extends Model {
+    public function posts() {
+        return $this->hasMany(Post::class);
+    }
+}
+
+class Post extends Model {
+    public function user() {
+        return $this->belongsTo(User::class);
+    }
+    public function tags() {
+        return $this->belongsToMany(Tag::class); // many-to-many via pivot table
+    }
+}
+
+// Usage
+$user = User::find(1);
+foreach ($user->posts as $post) {  // note: no parentheses -- accessed as a property
+    echo $post->title;
+}
+
+$post = Post::find(1);
+echo $post->user->name; // "belongs to" -- the author's name
+foreach ($post->tags as $tag) {
+    echo $tag->name;
+}
+</code></pre>
+
+  <h2>The N+1 problem and eager loading</h2>
+  <p>If you loop over 50 posts and access <code>$post->user->name</code> on each, that's <strong>1 query for the posts + 50 queries for each user</strong> — the "N+1" problem. Eager loading with <code>with()</code> fixes this by fetching related data in a second, single query:</p>
+  <pre><code class="language-php">&lt;?php
+// Bad: 1 + N queries
+$posts = Post::all();
+foreach ($posts as $post) {
+    echo $post->user->name; // triggers a query EVERY iteration
+}
+
+// Good: 2 queries total, regardless of how many posts
+$posts = Post::with('user')->get();
+foreach ($posts as $post) {
+    echo $post->user->name; // no extra query -- already loaded
+}
+</code></pre>
+  <div class="callout warn">
+    <b>Watch for this in code review</b>
+    The N+1 problem is probably the single most common Laravel performance bug in real applications. Laravel even has a package, "Laravel Debugbar" or the built-in <code>DB::listen()</code>, to spot it — if you ever see query counts scale linearly with the number of rows displayed, suspect a missing <code>with()</code>.
+  </div>
+
+  <h2>Accessors, mutators & casts</h2>
+  <p>Sometimes a database column needs transforming whenever it's read or written -- formatting a price, hashing a password, decoding JSON. Eloquent handles this with <strong>casts</strong> (for simple type conversions) and <strong>accessors/mutators</strong> (for custom logic).</p>
+  <pre><code class="language-php">&lt;?php
+class Post extends Model {
+    protected function casts(): array {
+        return [
+            'published' => 'boolean',
+            'published_at' => 'datetime',
+            'metadata' => 'array',       // automatically json_encode/json_decode
+        ];
+    }
+
+    // Accessor: runs whenever $post->excerpt is accessed
+    protected function excerpt(): Attribute {
+        return Attribute::make(
+            get: fn() => str($this->body)->limit(100),
+        );
+    }
+
+    // Mutator: runs whenever $post->title = ... is set
+    protected function title(): Attribute {
+        return Attribute::make(
+            set: fn(string $value) => ucfirst(trim($value)),
+        );
+    }
+}
+
+$post = Post::find(1);
+echo $post->excerpt;        // computed on the fly, not a real column
+$post->title = '  my post'; // stored as "My post"
+</code></pre>
+
+  <h2>Query scopes</h2>
+  <p>Reusable query fragments -- instead of repeating <code>->where('published', true)</code> everywhere:</p>
+  <pre><code class="language-php">&lt;?php
+class Post extends Model {
+    public function scopePublished($query) {
+        return $query->where('published', true);
+    }
+
+    public function scopeByAuthor($query, $userId) {
+        return $query->where('user_id', $userId);
+    }
+}
+
+// Usage -- reads almost like English
+Post::published()->byAuthor($userId)->latest()->get();
+</code></pre>
+
+  <h2>Soft deletes</h2>
+  <p>Instead of permanently removing a row, "soft delete" sets a <code>deleted_at</code> timestamp -- the record is hidden from normal queries but can be restored.</p>
+  <pre><code class="language-php">&lt;?php
+// migration
+Schema::table('posts', function (Blueprint $table) {
+    $table->softDeletes(); // adds nullable deleted_at column
+});
+
+// model
+class Post extends Model {
+    use SoftDeletes;
+}
+
+$post->delete();              // sets deleted_at, doesn't remove the row
+Post::all();                   // soft-deleted posts excluded automatically
+Post::withTrashed()->get();    // include soft-deleted
+Post::onlyTrashed()->get();    // only soft-deleted
+$post->restore();              // un-delete
+$post->forceDelete();          // permanently remove
+</code></pre>
+
+  <h2>Database seeding</h2>
+  <p>Seeders populate your database with sample data -- useful for development and demos. Combined with <strong>factories</strong>, you can generate realistic fake data using <strong>Faker</strong>, a library (accessed via the <code>fake()</code> helper) that generates random-but-realistic values — names, emails, paragraphs of text, dates — so your seeded data looks like real content instead of "test123":</p>
+  <pre><code class="language-bash">php artisan make:factory PostFactory
+php artisan make:seeder PostSeeder</code></pre>
+  <pre><code class="language-php">&lt;?php
+// database/factories/PostFactory.php
+class PostFactory extends Factory {
+    public function definition(): array {
+        return [
+            'title' => fake()->sentence(),
+            'body' => fake()->paragraphs(3, true),
+            'published' => fake()->boolean(80), // 80% chance of true
+            'user_id' => User::factory(),
+        ];
+    }
+}
+</code></pre>
+  <pre><code class="language-php">&lt;?php
+// database/seeders/DatabaseSeeder.php
+public function run(): void {
+    User::factory(5)->create()->each(function ($user) {
+        Post::factory(10)->create(['user_id' => $user->id]);
+    });
+}
+</code></pre>
+  <pre><code class="language-bash">php artisan db:seed</code></pre>
+  `
+},
+
+{
+  id: "laravel-validation-middleware",
+  track: "laravel",
+  title: "Validation, Form Requests & Middleware",
+  html: `
+  <h2>Validation in controllers</h2>
+  <p>Remember the manual validation in the plain-PHP forms chapter — checking <code>$_POST['name']</code> isn't empty, checking the email format? Laravel's <code>validate()</code> does all of that declaratively:</p>
+  <pre><code class="language-php">&lt;?php
+public function store(Request $request)
+{
+    $validated = $request->validate([
+        'title' => 'required|string|max:255',
+        'email' => 'required|email|unique:users,email',
+        'age' => 'nullable|integer|min:18',
+        'role' => 'required|in:admin,editor,viewer',
+    ]);
+
+    // If validation fails, Laravel automatically redirects back with errors
+    // and old input -- this line only runs if everything passed
+    User::create($validated);
+
+    return redirect('/users')->with('success', 'User created');
+}
+</code></pre>
+  <p>In the Blade view, validation errors and old input are available automatically via the <code>$errors</code> variable and <code>old()</code> helper:</p>
+  <pre><code class="language-blade">&lt;input type="text" name="title" value="{{ old('title') }}"&gt;
+@error('title')
+  &lt;p class="error"&gt;{{ $message }}&lt;/p&gt;
+@enderror</code></pre>
+
+  <h2>Form Request classes</h2>
+  <p>For complex validation, extract it into its own class — this keeps controllers focused on orchestration rather than validation rules:</p>
+  <pre><code class="language-bash">php artisan make:request StorePostRequest</code></pre>
+  <pre><code class="language-php">&lt;?php
+namespace App\\Http\\Requests;
+
+use Illuminate\\Foundation\\Http\\FormRequest;
+
+class StorePostRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return true; // or e.g. $this->user()->can('create', Post::class)
+    }
+
+    public function rules(): array
+    {
+        return [
+            'title' => 'required|string|max:255',
+            'body' => 'required|string|min:10',
+            'published' => 'boolean',
+        ];
+    }
+}
+</code></pre>
+  <pre><code class="language-php">&lt;?php
+// Controller: type-hint the Form Request instead of Request
+public function store(StorePostRequest $request)
+{
+    // $request->validated() returns only the validated fields
+    Post::create($request->validated());
+    return redirect('/posts');
+}
+</code></pre>
+  <p>Laravel automatically resolves the Form Request, runs <code>authorize()</code> and <code>rules()</code> <em>before</em> your controller method body even executes. If validation fails, your controller code never runs at all — Laravel redirects back with errors.</p>
+
+  <h2>Middleware: request/response filters</h2>
+  <p>Middleware sits "between" the incoming request and your controller (and between your response and the browser). It's the formal version of the "check this before doing that" guards you'd write manually — like checking <code>$_SESSION['user_id']</code> at the top of every protected plain-PHP page.</p>
+  <pre><code class="language-bash">php artisan make:middleware EnsureUserIsAdmin</code></pre>
+  <pre><code class="language-php">&lt;?php
+namespace App\\Http\\Middleware;
+
+use Closure;
+use Illuminate\\Http\\Request;
+
+class EnsureUserIsAdmin
+{
+    public function handle(Request $request, Closure $next)
+    {
+        if (!$request->user() || !$request->user()->is_admin) {
+            abort(403, 'Unauthorized');
+        }
+
+        return $next($request); // pass control to the next middleware / controller
+    }
+}
+</code></pre>
+  <p>Register it (in <code>bootstrap/app.php</code> for Laravel 11+, or <code>app/Http/Kernel.php</code> for earlier versions) and apply it to routes:</p>
+  <pre><code class="language-php">&lt;?php
+Route::get('/admin/dashboard', [AdminController::class, 'index'])
+    ->middleware('admin');
+
+// Or group multiple routes
+Route::middleware(['auth', 'admin'])->group(function () {
+    Route::get('/admin/users', [AdminController::class, 'users']);
+    Route::get('/admin/settings', [AdminController::class, 'settings']);
+});
+</code></pre>
+  <div class="callout">
+    <b>Built-in middleware you'll use constantly</b>
+    <code>auth</code> (must be logged in), <code>guest</code> (must NOT be logged in — for login/register pages), <code>throttle:60,1</code> (rate-limit to 60 requests/minute), and <code>verified</code> (email must be verified). Laravel's CSRF protection is also implemented as middleware (<code>VerifyCsrfToken</code>), applied automatically to the <code>web</code> middleware group.
+  </div>
+
+  <h2>Custom validation rules</h2>
+  <p>For validation logic beyond the built-in rules (e.g. "this code must match a specific format and not already be used this month"), create a custom rule class:</p>
+  <pre><code class="language-bash">php artisan make:rule StrongPassword</code></pre>
+  <pre><code class="language-php">&lt;?php
+namespace App\Rules;
+
+use Illuminate\Contracts\Validation\ValidationRule;
+use Closure;
+
+class StrongPassword implements ValidationRule
+{
+    public function validate(string $attribute, mixed $value, Closure $fail): void
+    {
+        if (strlen($value) < 8) {
+            $fail('The :attribute must be at least 8 characters.');
+        }
+        if (!preg_match('/[A-Z]/', $value)) {
+            $fail('The :attribute must contain an uppercase letter.');
+        }
+        if (!preg_match('/[0-9]/', $value)) {
+            $fail('The :attribute must contain a number.');
+        }
+    }
+}
+</code></pre>
+  <pre><code class="language-php">&lt;?php
+$request->validate([
+    'password' => ['required', new StrongPassword()],
+]);
+</code></pre>
+
+  <h2>Conditional validation</h2>
+  <pre><code class="language-php">&lt;?php
+$request->validate([
+    'discount_code' => 'nullable|string',
+    // required only if 'has_discount' is true
+    'discount_amount' => 'required_if:has_discount,true|numeric|min:0',
+    // must be one of these specific values
+    'status' => 'required|in:draft,published,archived',
+    // array validation -- each tag must be a string, max 5 tags
+    'tags' => 'array|max:5',
+    'tags.*' => 'string|max:20',
+]);
+</code></pre>
+
+  <h2>Rate limiting middleware</h2>
+  <p>Remember the hand-rolled file-based rate limiter from the plain-PHP API chapter? Laravel's <code>throttle</code> middleware does the same job using the cache (Redis in production), with near-zero code:</p>
+  <pre><code class="language-php">&lt;?php
+// routes/api.php
+Route::middleware('throttle:60,1')->group(function () {
+    // max 60 requests per minute per user/IP
+    Route::apiResource('posts', PostController::class);
+});
+
+// Different limits for different routes
+Route::post('/login', [AuthController::class, 'login'])
+    ->middleware('throttle:5,1'); // stricter limit on login attempts
+</code></pre>
+  <p>When the limit is exceeded, Laravel automatically returns a <code>429 Too Many Requests</code> response with <code>Retry-After</code> headers -- exactly the response shape we built by hand earlier.</p>
+
+  <h2>Middleware execution order & terminable middleware</h2>
+  <p>Middleware runs in the order it's registered, wrapping the request like layers of an onion: each middleware's code <em>before</em> <code>$next($request)</code> runs on the way in, and code <em>after</em> runs on the way out (in reverse order). Some middleware implement a <code>terminate()</code> method that runs <em>after</em> the response has been sent to the browser -- useful for logging or cleanup that shouldn't delay the response.</p>
+  `
+},
+
+{
+  id: "laravel-auth",
+  track: "laravel",
+  title: "Authentication & Authorization",
+  html: `
+  <h2>From scratch to Breeze</h2>
+  <p>In plain PHP, we built login by hand: hashing passwords with <code>password_hash()</code>, verifying with <code>password_verify()</code>, storing a user ID in <code>$_SESSION</code>, and regenerating the session ID on login. Laravel formalizes this entirely, and starter kits like <strong>Laravel Breeze</strong> scaffold a complete, secure auth system in minutes.</p>
+  <pre><code class="language-bash">composer require laravel/breeze --dev
+php artisan breeze:install
+npm install && npm run dev
+php artisan migrate</code></pre>
+  <div class="callout">
+    <b>What is npm?</b>
+    Breeze's login/register pages need some CSS and JavaScript building (Tailwind CSS, Alpine.js). <strong>npm</strong> (Node Package Manager) is to JavaScript what Composer is to PHP — it installs front-end packages listed in <code>package.json</code> and runs build scripts. <code>npm install</code> downloads those packages, and <code>npm run dev</code> starts <strong>Vite</strong>, a build tool that compiles your CSS/JS and serves it during development. This requires <a href="https://nodejs.org" target="_blank">Node.js</a> to be installed alongside PHP.
+  </div>
+  <p>This generates login, registration, password reset, and email verification — all routes, controllers, and Blade views — wired up to a <code>users</code> table migration that already exists in fresh Laravel projects.</p>
+
+  <h2>The users table & User model</h2>
+  <pre><code class="language-php">&lt;?php
+// database/migrations/xxxx_create_users_table.php (default, comes with Laravel)
+Schema::create('users', function (Blueprint $table) {
+    $table->id();
+    $table->string('name');
+    $table->string('email')->unique();
+    $table->timestamp('email_verified_at')->nullable();
+    $table->string('password'); // already hashed -- Laravel casts this automatically
+    $table->rememberToken();
+    $table->timestamps();
+});
+</code></pre>
+  <pre><code class="language-php">&lt;?php
+// app/Models/User.php (excerpt)
+class User extends Authenticatable
+{
+    protected $fillable = ['name', 'email', 'password'];
+
+    protected $hidden = ['password', 'remember_token']; // never include in JSON output
+
+    protected function casts(): array {
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed', // Laravel 10+ auto-hashes on assignment
+        ];
+    }
+}
+</code></pre>
+
+  <h2>Logging in and out manually</h2>
+  <pre><code class="language-php">&lt;?php
+use Illuminate\\Support\\Facades\\Auth;
+
+// Login
+if (Auth::attempt(['email' => $email, 'password' => $password])) {
+    request()->session()->regenerate(); // same security practice as plain PHP!
+    return redirect()->intended('/dashboard');
+}
+return back()->withErrors(['email' => 'Invalid credentials']);
+
+// Logout
+Auth::logout();
+request()->session()->invalidate();
+request()->session()->regenerateToken();
+
+// Current user, anywhere in the app
+$user = Auth::user();
+$id = Auth::id();
+if (Auth::check()) { /* logged in */ }
+</code></pre>
+
+  <h2>Authorization: Gates and Policies</h2>
+  <p>Authentication answers "who are you?". Authorization answers "what are you allowed to do?". A <strong>Policy</strong> is a class with methods describing what a user can do to a given model:</p>
+  <pre><code class="language-bash">php artisan make:policy PostPolicy --model=Post</code></pre>
+  <pre><code class="language-php">&lt;?php
+namespace App\\Policies;
+
+use App\\Models\\Post;
+use App\\Models\\User;
+
+class PostPolicy
+{
+    public function update(User $user, Post $post): bool
+    {
+        return $user->id === $post->user_id; // only the author can edit
+    }
+
+    public function delete(User $user, Post $post): bool
+    {
+        return $user->id === $post->user_id || $user->is_admin;
+    }
+}
+</code></pre>
+  <pre><code class="language-php">&lt;?php
+// In a controller
+public function update(Request $request, Post $post)
+{
+    $this->authorize('update', $post); // throws 403 automatically if it fails
+    // ...
+}
+</code></pre>
+  <pre><code class="language-blade">{{-- In a Blade view --}}
+@can('update', $post)
+  &lt;a href="{{ route('posts.edit', $post) }}"&gt;Edit&lt;/a&gt;
+@endcan</code></pre>
+
+  <h2>API authentication with Sanctum</h2>
+  <p>For APIs (especially ones consumed by a separate frontend, like a React or Vue SPA, or mobile app), session cookies don't always make sense. <strong>Laravel Sanctum</strong> issues lightweight API tokens.</p>
+  <pre><code class="language-bash">composer require laravel/sanctum
+php artisan vendor:publish --provider="Laravel\\Sanctum\\SanctumServiceProvider"
+php artisan migrate</code></pre>
+  <pre><code class="language-php">&lt;?php
+// Issue a token (e.g. in a login endpoint)
+$token = $user->createToken('api-token')->plainTextToken;
+return response()->json(['token' => $token]);
+
+// Protect routes
+Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+    return $request->user();
+});
+</code></pre>
+  <pre><code class="language-bash"># Client sends the token in the Authorization header
+curl http://localhost:8000/api/user \\
+  -H "Authorization: Bearer 1|abcdef123456..."</code></pre>
+
+  <h2>Password reset flow</h2>
+  <p>Breeze scaffolds this, but understanding the flow helps when customizing it. It mirrors the email-verification pattern: generate a signed, time-limited token, email a link containing it, and verify the token before allowing a password change.</p>
+  <pre><code class="language-php">&lt;?php
+use Illuminate\Support\Facades\Password;
+
+// Step 1: user requests a reset -- send them an email with a token link
+Password::sendResetLink(['email' => $request->email]);
+
+// Step 2: user clicks the link, submits new password + token
+$status = Password::reset(
+    $request->only('email', 'password', 'password_confirmation', 'token'),
+    function ($user, $password) {
+        $user->forceFill(['password' => $password])->save();
+    }
+);
+</code></pre>
+
+  <h2>Roles and permissions</h2>
+  <p>For anything beyond a simple <code>is_admin</code> boolean, a roles/permissions system lets you express "editors can publish posts but not delete users". You can build this yourself with a few tables (<code>roles</code>, <code>permissions</code>, pivot tables), or use a well-tested package like <strong>spatie/laravel-permission</strong>:</p>
+  <pre><code class="language-bash">composer require spatie/laravel-permission
+php artisan vendor:publish --provider="Spatie\Permission\PermissionServiceProvider"
+php artisan migrate</code></pre>
+  <pre><code class="language-php">&lt;?php
+$user->assignRole('editor');
+$user->givePermissionTo('publish posts');
+
+if ($user->can('publish posts')) { /* ... */ }
+if ($user->hasRole('admin')) { /* ... */ }
+</code></pre>
+  <pre><code class="language-php">&lt;?php
+// In routes
+Route::middleware(['auth', 'role:admin'])->group(function () {
+    Route::get('/admin/dashboard', ...);
+});
+</code></pre>
+  <pre><code class="language-blade">@role('admin')
+  &lt;a href="/admin"&gt;Admin panel&lt;/a&gt;
+@endrole</code></pre>
+
+  <h2>Logging in with social providers (Socialite)</h2>
+  <p>For "Sign in with Google/GitHub" style auth, Laravel Socialite handles the <strong>OAuth</strong> handshake — a standard protocol where, instead of typing a password into your app, the user logs in directly on Google/GitHub's site and that provider redirects back to your app with a token confirming who they are (and which permissions they granted). Socialite wraps the redirect-and-callback dance into two method calls:</p>
+  <pre><code class="language-bash">composer require laravel/socialite</code></pre>
+  <pre><code class="language-php">&lt;?php
+// Redirect to provider
+return Socialite::driver('github')->redirect();
+
+// Handle callback
+$githubUser = Socialite::driver('github')->user();
+$user = User::firstOrCreate(
+    ['email' => $githubUser->getEmail()],
+    ['name' => $githubUser->getName(), 'password' => bcrypt(Str::random(24))]
+);
+Auth::login($user);
+</code></pre>
+
+  <h2>Protecting routes vs protecting data</h2>
+  <div class="callout warn">
+    <b>Two different problems</b>
+    Middleware (<code>auth</code>, <code>role:admin</code>) controls <em>which routes</em> a user can access. Policies (<code>$this->authorize('update', $post)</code>) control whether a user can act on a <em>specific record</em>. Forgetting the second is a common real-world bug: a route might require login, but without a policy check, any logged-in user could edit <em>anyone's</em> post just by guessing IDs in the URL.
+  </div>
+  `
+},
+
+{
+  id: "laravel-api",
+  track: "laravel",
+  title: "Building REST APIs with Laravel",
+  html: `
+  <h2>API routes vs web routes</h2>
+  <p><code>routes/api.php</code> is for JSON endpoints. All routes here are automatically prefixed with <code>/api</code> and excluded from CSRF protection (since API clients typically authenticate with tokens, not session cookies).</p>
+  <pre><code class="language-php">&lt;?php
+// routes/api.php
+use App\\Http\\Controllers\\Api\\PostController;
+
+Route::apiResource('posts', PostController::class);
+// Generates: index, store, show, update, destroy (NOT create/edit -- those return HTML forms,
+// which an API has no use for)</code></pre>
+
+  <h2>API Controllers</h2>
+  <pre><code class="language-bash">php artisan make:controller Api/PostController --api --model=Post</code></pre>
+  <pre><code class="language-php">&lt;?php
+namespace App\\Http\\Controllers\\Api;
+
+use App\\Http\\Controllers\\Controller;
+use App\\Models\\Post;
+use Illuminate\\Http\\Request;
+
+class PostController extends Controller
+{
+    public function index(Request $request)
+    {
+        $posts = Post::with('user')
+            ->when($request->query('published'), fn($q) => $q->where('published', true))
+            ->latest()
+            ->paginate(15);
+
+        return PostResource::collection($posts);
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'body' => 'required|string',
+        ]);
+
+        $post = $request->user()->posts()->create($validated);
+
+        return new PostResource($post->load('user'));
+    }
+
+    public function show(Post $post) // Laravel resolves this automatically via route-model binding!
+    {
+        return new PostResource($post->load('user'));
+    }
+
+    public function update(Request $request, Post $post)
+    {
+        $this->authorize('update', $post);
+
+        $validated = $request->validate([
+            'title' => 'sometimes|string|max:255',
+            'body' => 'sometimes|string',
+        ]);
+
+        $post->update($validated);
+
+        return new PostResource($post);
+    }
+
+    public function destroy(Post $post)
+    {
+        $this->authorize('delete', $post);
+        $post->delete();
+        return response()->json(null, 204);
+    }
+}
+</code></pre>
+  <div class="callout">
+    <b>Route-model binding</b>
+    Notice <code>show(Post $post)</code> — type-hinting a model in a controller method tells Laravel: "take the <code>{post}</code> route parameter, look up <code>Post::findOrFail($id)</code>, and inject the resulting model directly." This is the framework-level version of <code>$repo->find((int)$id)</code> plus the 404-if-missing check we wrote by hand.
+  </div>
+
+  <h2>API Resources: controlling JSON shape</h2>
+  <p>You almost never want to dump a raw Eloquent model as JSON — it might expose internal columns (password hashes, timestamps you don't need) or need reshaping. <strong>API Resources</strong> are the transformation layer.</p>
+  <pre><code class="language-bash">php artisan make:resource PostResource</code></pre>
+  <pre><code class="language-php">&lt;?php
+namespace App\\Http\\Resources;
+
+use Illuminate\\Http\\Request;
+use Illuminate\\Http\\Resources\\Json\\JsonResource;
+
+class PostResource extends JsonResource
+{
+    public function toArray(Request $request): array
+    {
+        return [
+            'id' => $this->id,
+            'title' => $this->title,
+            'body' => $this->body,
+            'published' => $this->published,
+            'author' => [
+                'id' => $this->user->id,
+                'name' => $this->user->name,
+            ],
+            'created_at' => $this->created_at->toIso8601String(),
+        ];
+    }
+}
+</code></pre>
+  <p>This is your <code>jsonResponse()</code> helper from the plain-PHP API, but type-safe, reusable, and able to conditionally include fields (e.g. only show <code>email</code> if the requester is the resource owner via <code>$this->when(...)</code>).</p>
+
+  <h2>Pagination</h2>
+  <p><code>paginate(15)</code> automatically wraps results in metadata your frontend needs:</p>
+  <pre><code class="language-json">{
+  "data": [ ... ],
+  "links": { "first": "...", "last": "...", "prev": null, "next": "..." },
+  "meta": { "current_page": 1, "last_page": 5, "per_page": 15, "total": 68 }
+}</code></pre>
+
+  <h2>Error handling for APIs</h2>
+  <p>Laravel's exception handler automatically returns JSON for API requests (detected via the <code>Accept: application/json</code> header). A <code>ModelNotFoundException</code> → 404 JSON, a <code>ValidationException</code> → 422 JSON with field-specific error messages, automatically — no manual <code>jsonResponse(['error' => ...], 404)</code> calls needed.</p>
+  <pre><code class="language-json">{
+  "message": "The title field is required.",
+  "errors": {
+    "title": ["The title field is required."]
+  }
+}</code></pre>
+
+  <h2>Filtering, sorting, and including relations via query params</h2>
+  <p>A flexible API lets clients shape the response without new endpoints for every variation:</p>
+  <pre><code class="language-php">&lt;?php
+public function index(Request $request)
+{
+    $query = Post::query();
+
+    // Filtering: /api/posts?published=1
+    if ($request->has('published')) {
+        $query->where('published', $request->boolean('published'));
+    }
+
+    // Searching: /api/posts?search=laravel
+    if ($search = $request->query('search')) {
+        $query->where('title', 'like', "%{$search}%");
+    }
+
+    // Sorting: /api/posts?sort=-created_at (- prefix = descending)
+    $sort = $request->query('sort', '-created_at');
+    $direction = str_starts_with($sort, '-') ? 'desc' : 'asc';
+    $column = ltrim($sort, '-');
+    $query->orderBy($column, $direction);
+
+    // Including relations: /api/posts?include=user,tags
+    if ($includes = $request->query('include')) {
+        $query->with(explode(',', $includes));
+    }
+
+    return PostResource::collection($query->paginate(15));
+}
+</code></pre>
+
+  <h2>API versioning in Laravel</h2>
+  <pre><code class="language-php">&lt;?php
+// routes/api.php
+Route::prefix('v1')->group(function () {
+    Route::apiResource('posts', V1\PostController::class);
+});
+
+Route::prefix('v2')->group(function () {
+    Route::apiResource('posts', V2\PostController::class);
+});
+</code></pre>
+  <p>Each version gets its own controller (and often its own Resource class), so <code>/api/v1/posts</code> and <code>/api/v2/posts</code> can return different shapes while both remain functional.</p>
+
+  <h2>Throwing API exceptions deliberately</h2>
+  <p>For business-logic errors (not validation), throw an <code>HttpException</code> with the right status code -- Laravel converts it to JSON automatically for API requests:</p>
+  <pre><code class="language-php">&lt;?php
+use Symfony\Component\HttpKernel\Exception\HttpException;
+
+if ($post->user_id !== $request->user()->id) {
+    throw new HttpException(403, 'You do not own this post.');
+}
+
+if ($post->published) {
+    abort(409, 'Cannot edit a published post.'); // 'abort' is a shortcut for throwing HttpException
+}
+</code></pre>
+
+  <h2>Testing API endpoints end-to-end</h2>
+  <pre><code class="language-php">&lt;?php
+public function test_can_filter_published_posts(): void
+{
+    Post::factory()->create(['published' => true, 'title' => 'Visible']);
+    Post::factory()->create(['published' => false, 'title' => 'Hidden']);
+
+    $response = $this->getJson('/api/v1/posts?published=1');
+
+    $response->assertStatus(200)
+             ->assertJsonCount(1, 'data')
+             ->assertJsonPath('data.0.title', 'Visible');
+}
+</code></pre>
+  `
+},
+
+{
+  id: "laravel-advanced",
+  track: "laravel",
+  title: "Advanced: Queues, Jobs, Events & Testing",
+  html: `
+  <h2>Queues and Jobs: deferring slow work</h2>
+  <p>Some operations — sending an email, processing an image, calling a slow third-party API — shouldn't block the HTTP response. A <strong>Job</strong> is a class representing "a unit of work to do later", pushed onto a <strong>queue</strong> and processed by a separate background worker process.</p>
+  <pre><code class="language-bash">php artisan make:job SendWelcomeEmail</code></pre>
+  <pre><code class="language-php">&lt;?php
+namespace App\\Jobs;
+
+use App\\Models\\User;
+use Illuminate\\Bus\\Queueable;
+use Illuminate\\Contracts\\Queue\\ShouldQueue;
+use Illuminate\\Foundation\\Bus\\Dispatchable;
+
+class SendWelcomeEmail implements ShouldQueue
+{
+    use Dispatchable, Queueable;
+
+    public function __construct(public User $user) {}
+
+    public function handle(): void
+    {
+        // This runs in the background worker, not the web request
+        Mail::to($this->user)->send(new WelcomeMail($this->user));
+    }
+}
+</code></pre>
+  <pre><code class="language-php">&lt;?php
+// Dispatch from a controller -- returns to the user instantly
+SendWelcomeEmail::dispatch($user);
+</code></pre>
+  <pre><code class="language-bash"># Run a worker to process queued jobs (in production, run via Supervisor)
+php artisan queue:work</code></pre>
+  <div class="callout">
+    <b>What is Supervisor?</b>
+    <code>php artisan queue:work</code> is a long-running process — if it crashes or the server reboots, queued jobs stop being processed. <strong>Supervisor</strong> is a Linux process manager that keeps a command running, automatically restarting it if it dies. In production, you'd configure Supervisor to run <code>queue:work</code> (and restart it after deployments), rather than running the command manually in a terminal.
+  </div>
+  <p>By default, the <code>QUEUE_CONNECTION</code> in <code>.env</code> is <code>sync</code> (jobs run immediately, in the request) — fine for local dev, but switch to <code>database</code> or <code>redis</code> for real deferred processing.</p>
+
+  <h2>Events & Listeners</h2>
+  <p>Events let different parts of your app react to something happening without tightly coupling the code that triggers it to the code that responds. "A user registered" might need to: send a welcome email, notify an admin, and create a default workspace — three unrelated concerns.</p>
+  <pre><code class="language-bash">php artisan make:event UserRegistered
+php artisan make:listener SendWelcomeEmail --event=UserRegistered</code></pre>
+  <pre><code class="language-php">&lt;?php
+// Dispatching
+event(new UserRegistered($user));
+
+// Or, on the model, fired automatically:
+class User extends Authenticatable {
+    protected static function booted(): void {
+        static::created(function (User $user) {
+            event(new UserRegistered($user));
+        });
+    }
+}
+</code></pre>
+  <p>Listeners can implement <code>ShouldQueue</code> too — so "send welcome email" runs in the background while "create default workspace" might run synchronously.</p>
+
+  <h2>Testing</h2>
+  <p>Laravel ships with PHPUnit (or Pest) configured out of the box, plus a fluent HTTP testing API and an in-memory SQLite option for fast tests.</p>
+  <pre><code class="language-bash">php artisan make:test PostApiTest</code></pre>
+  <pre><code class="language-php">&lt;?php
+namespace Tests\\Feature;
+
+use App\\Models\\User;
+use App\\Models\\Post;
+use Illuminate\\Foundation\\Testing\\RefreshDatabase;
+use Tests\\TestCase;
+
+class PostApiTest extends TestCase
+{
+    use RefreshDatabase; // wraps each test in a transaction, rolls back after
+
+    public function test_authenticated_user_can_create_post(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->postJson('/api/posts', [
+            'title' => 'Test Post',
+            'body' => 'This is the body content.',
+        ]);
+
+        $response->assertStatus(201)
+                 ->assertJsonPath('data.title', 'Test Post');
+
+        $this->assertDatabaseHas('posts', ['title' => 'Test Post']);
+    }
+
+    public function test_guest_cannot_create_post(): void
+    {
+        $response = $this->postJson('/api/posts', ['title' => 'X', 'body' => 'Y']);
+        $response->assertStatus(401);
+    }
+}
+</code></pre>
+  <p><strong>Factories</strong> (<code>User::factory()->create()</code>) generate realistic fake model instances for tests, using definitions you set up in <code>database/factories/</code> — far better than manually inserting test rows.</p>
+
+  <h2>Caching</h2>
+  <pre><code class="language-php">&lt;?php
+use Illuminate\\Support\\Facades\\Cache;
+
+// Remember for 60 minutes -- recompute only if expired/missing
+$posts = Cache::remember('published-posts', now()->addMinutes(60), function () {
+    return Post::where('published', true)->latest()->get();
+});
+
+Cache::forget('published-posts'); // invalidate manually, e.g. after a post is created
+</code></pre>
+
+  <h2>Deployment checklist</h2>
+  <ul>
+    <li>Set <code>APP_ENV=production</code> and <code>APP_DEBUG=false</code> in <code>.env</code> — never expose stack traces to visitors (same principle as the plain-PHP error-handling chapter).</li>
+    <li>Run <code>php artisan config:cache</code>, <code>route:cache</code>, and <code>view:cache</code> to avoid re-parsing on every request.</li>
+    <li>Run <code>php artisan migrate --force</code> to apply schema changes.</li>
+    <li>Use a real queue driver and run <code>queue:work</code> under a process manager (Supervisor) if you use queues.</li>
+    <li>Set up HTTPS, and ensure <code>SESSION_SECURE_COOKIE=true</code>.</li>
+  </ul>
+
+  <div class="callout">
+    <b>You've come full circle</b>
+    Every advanced Laravel feature here maps back to a concept from the plain-PHP track: jobs are "do this later" (vs. blocking the request), events are decoupled function calls, caching avoids redundant database queries, and the deployment checklist is the production error-handling and security configuration you learned to set manually. Laravel doesn't replace those fundamentals — it gives them names, structure, and tooling.
+  </div>
+
+  <h2>Task scheduling</h2>
+  <p><strong>Cron</strong> is the standard Unix tool for running a command on a fixed schedule (e.g. "every day at 1am"), configured via a list of cron entries ("crontab") on the server — one line per scheduled command, each with its own timing syntax. Laravel's scheduler replaces a server full of individual cron entries with a single, version-controlled schedule defined in code:</p>
+  <pre><code class="language-php">&lt;?php
+// routes/console.php (Laravel 11+) or app/Console/Kernel.php
+use Illuminate\Support\Facades\Schedule;
+
+Schedule::command('reports:generate-daily')->dailyAt('01:00');
+Schedule::job(new CleanupOldNotifications())->weekly();
+Schedule::call(function () {
+    DB::table('sessions')->where('last_activity', '<', now()->subDays(7)->timestamp)->delete();
+})->daily();
+</code></pre>
+  <pre><code class="language-bash"># A single cron entry on the server runs this every minute;
+# Laravel decides what actually needs to run
+* * * * * php /path/to/artisan schedule:run >> /dev/null 2>&1</code></pre>
+
+  <h2>Broadcasting & real-time updates (brief overview)</h2>
+  <p>For features like live notifications or chat, Laravel can broadcast events over WebSockets (via services like Pusher or a self-hosted Laravel Reverb):</p>
+  <pre><code class="language-php">&lt;?php
+class PostPublished implements ShouldBroadcast {
+    public function __construct(public Post $post) {}
+
+    public function broadcastOn(): array {
+        return [new Channel('posts')];
+    }
+}
+
+// Dispatch like any other event
+event(new PostPublished($post));
+</code></pre>
+  <pre><code class="language-javascript">// Frontend (using Laravel Echo)
+Echo.channel('posts').listen('PostPublished', (e) => {
+    console.log('New post:', e.post.title);
+});</code></pre>
+  <p>This is the same publish/subscribe idea as the Events &amp; Listeners chapter -- broadcasting just extends it from "other PHP code reacts" to "connected browsers react in real time".</p>
+
+  <h2>Artisan commands of your own</h2>
+  <pre><code class="language-bash">php artisan make:command SendDailyDigest</code></pre>
+  <pre><code class="language-php">&lt;?php
+class SendDailyDigest extends Command {
+    protected $signature = 'digest:send {--dry-run}';
+    protected $description = 'Send the daily digest email to all subscribers';
+
+    public function handle(): void {
+        $users = User::where('subscribed', true)->get();
+        $this->info("Sending to {$users->count()} users...");
+
+        foreach ($users as $user) {
+            if (!$this->option('dry-run')) {
+                SendDigestEmail::dispatch($user);
+            }
+        }
+
+        $this->info('Done.');
+    }
+}
+</code></pre>
+  <pre><code class="language-bash">php artisan digest:send --dry-run</code></pre>
+
+  <h2>Final project ideas</h2>
+  <p>To consolidate everything across both tracks, try extending the task manager / blog API into a small full project:</p>
+  <ul>
+    <li>Add tags with a many-to-many relationship and filter posts by tag</li>
+    <li>Add comments with a policy so only the comment author or post owner can delete</li>
+    <li>Queue an email notification when someone comments on your post</li>
+    <li>Add an admin dashboard route group with role-based middleware</li>
+    <li>Write feature tests covering the happy path and at least one authorization failure for each endpoint</li>
+  </ul>
+  `
+},
+
+];
+
+/* ============================================================
+   APP LOGIC
+   ============================================================ */
+const trackMeta = {
+  php: { label: "PHP Fundamentals", emoji: "🐘", desc: "Plain PHP from variables to a working REST API — syntax, OOP, databases, and security, explained in depth." },
+  laravel: { label: "Laravel", emoji: "🔺", desc: "From installation to production: routing, Eloquent, auth, APIs, queues, and testing." },
+};
+
+const STORAGE_PROGRESS = "php-laravel-progress";
+function getProgress(){
+  try { return new Set(JSON.parse(localStorage.getItem(STORAGE_PROGRESS)) || []); }
+  catch(e){ return new Set(); }
+}
+function saveProgress(set){
+  localStorage.setItem(STORAGE_PROGRESS, JSON.stringify([...set]));
+}
+function toggleProgress(id){
+  const set = getProgress();
+  set.has(id) ? set.delete(id) : set.add(id);
+  saveProgress(set);
+  updateProgressUI();
+}
+function updateProgressUI(){
+  const done = getProgress();
+  const total = chapters.length;
+  document.getElementById('progressText').textContent = `${done.size} / ${total} chapters`;
+  document.getElementById('progressFill').style.width = `${(done.size/total)*100}%`;
+  document.querySelectorAll('.track-list a').forEach(a => {
+    a.classList.toggle('done', done.has(a.dataset.id));
+  });
+  document.querySelectorAll('.chapter-card').forEach(c => {
+    const mark = c.querySelector('.check');
+    if (mark) mark.style.display = done.has(c.dataset.id) ? '' : 'none';
+  });
+  const ct = document.getElementById('completeToggle');
+  if (ct){
+    const isDone = done.has(ct.dataset.id);
+    ct.classList.toggle('done', isDone);
+    ct.querySelector('.box').textContent = isDone ? '✓' : '';
+    ct.querySelector('.label-text').textContent = isDone ? 'Completed' : 'Mark as complete';
+  }
+}
+
+/* ---------- Sidebar nav ---------- */
+const COLLAPSE_KEY = "php-laravel-collapsed";
+function getCollapsed(){
+  try { return new Set(JSON.parse(localStorage.getItem(COLLAPSE_KEY)) || []); }
+  catch(e){ return new Set(); }
+}
+function buildNav(){
+  const container = document.getElementById('navContainer');
+  const collapsed = getCollapsed();
+  let html = '';
+  const tracks = ['php','laravel'];
+  tracks.forEach(track => {
+    const meta = trackMeta[track];
+    const chs = chapters.map((c,i)=>({...c, idx:i})).filter(c => c.track === track);
+    const isCollapsed = collapsed.has(track);
+    html += `<div class="track-group">
+      <button class="track-head ${track} ${isCollapsed ? 'collapsed':''}" data-toggle="${track}">
+        <span class="dot"></span><span>${meta.emoji} ${meta.label}</span><span class="chev">▾</span>
+      </button>
+      <div class="track-list ${isCollapsed ? 'collapsed':''}" data-list="${track}">`;
+    chs.forEach(c => {
+      html += `<a data-nav="chapter" data-id="${c.id}" class="${track === 'laravel' ? '' : ''}">
+                 <span class="num">${String(c.idx+1).padStart(2,'0')}</span><span>${c.title}</span><span class="check">✓</span>
+               </a>`;
+    });
+    html += `</div></div>`;
+  });
+  container.innerHTML = html;
+
+  container.querySelectorAll('.track-head').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const track = btn.dataset.toggle;
+      const list = container.querySelector(`.track-list[data-list="${track}"]`);
+      const c = getCollapsed();
+      const nowCollapsed = !btn.classList.contains('collapsed');
+      btn.classList.toggle('collapsed', nowCollapsed);
+      list.classList.toggle('collapsed', nowCollapsed);
+      nowCollapsed ? c.add(track) : c.delete(track);
+      localStorage.setItem(COLLAPSE_KEY, JSON.stringify([...c]));
+    });
+  });
+}
+
+/* ---------- Rendering: Home ---------- */
+function renderHome(){
+  const view = document.getElementById('view');
+  let cards = '';
+  ['php','laravel'].forEach(track => {
+    const meta = trackMeta[track];
+    const count = chapters.filter(c => c.track === track).length;
+    cards += `<div class="track-card ${track}" data-nav="chapter" data-id="${chapters.find(c=>c.track===track).id}">
+      <span class="emoji">${meta.emoji}</span>
+      <h3>${meta.label}</h3>
+      <p>${meta.desc}</p>
+      <div class="count">${count} chapters</div>
+    </div>`;
+  });
+
+  let grid = '';
+  chapters.forEach((c,i) => {
+    grid += `<div class="chapter-card" data-nav="chapter" data-id="${c.id}">
+      <span class="cnum">${String(i+1).padStart(2,'0')}</span>
+      <span class="ctitle">${c.title}</span>
+      <span class="badge ${c.track}">${c.track === 'php' ? 'PHP' : 'Laravel'}</span>
+      <span class="check" style="display:none">✓</span>
+    </div>`;
+  });
+
+  view.innerHTML = `
+    <div class="home">
+      <div class="home-eyebrow">A practical, in-depth tutorial</div>
+      <h1>PHP &amp; <span class="it">Laravel</span><br>From Scratch to a Real API</h1>
+      <p class="lede">Start with plain PHP — syntax, OOP, databases, security — and build a working REST API by hand. Then move to Laravel and see how the framework formalizes everything you just learned, all the way to queues, auth, and testing.</p>
+
+      <div class="track-cards">${cards}</div>
+
+      <h2 class="section-title">All ${chapters.length} Chapters</h2>
+      <div class="chapter-grid">${grid}</div>
+    </div>
+  `;
+  document.getElementById('crumb').innerHTML = `Home`;
+  document.querySelectorAll('nav.chapters a, .track-list a').forEach(a => a.classList.remove('active'));
+  document.getElementById('navHome').classList.add('active');
+  document.querySelectorAll('.track-list a').forEach(a => a.classList.remove('active','php-active','laravel-active'));
+  updateProgressUI();
+  window.scrollTo(0,0);
+}
+
+/* ---------- Rendering: Chapter ---------- */
+function renderChapter(id){
+  let idx = chapters.findIndex(c => c.id === id);
+  if (idx === -1) { renderHome(); return; }
+  const ch = chapters[idx];
+  const meta = trackMeta[ch.track];
+
+  document.getElementById('navHome').classList.remove('active');
+  document.querySelectorAll('.track-list a').forEach(a => {
+    const active = a.dataset.id === ch.id;
+    a.classList.toggle('active', active);
+    a.classList.toggle('php-active', active && ch.track === 'php');
+    a.classList.toggle('laravel-active', active && ch.track === 'laravel');
+  });
+
+  const prev = chapters[idx-1];
+  const next = chapters[idx+1];
+  const done = getProgress().has(ch.id);
+
+  const view = document.getElementById('view');
+  view.innerHTML = `
+    <div class="content">
+      <div class="chapter-top">
+        <div>
+          <span class="chapter-meta ${ch.track}">${meta.label} · Chapter ${idx+1}</span>
+          <h1>${ch.title}</h1>
+        </div>
+        <div class="complete-toggle ${done?'done':''}" id="completeToggle" data-id="${ch.id}">
+          <span class="box">${done?'✓':''}</span><span class="label-text">${done?'Completed':'Mark as complete'}</span>
+        </div>
+      </div>
+      ${ch.html}
+      <div class="pagenav">
+        ${prev ? `<a class="prev" data-nav="chapter" data-id="${prev.id}"><span class="label">← Previous</span><span class="title">${prev.title}</span></a>` : `<a data-nav="home"><span class="label">← Back</span><span class="title">Home &amp; Table of Contents</span></a>`}
+        ${next ? `<a class="next" data-nav="chapter" data-id="${next.id}"><span class="label">Next →</span><span class="title">${next.title}</span></a>` : `<a class="next" data-nav="home"><span class="label">Finish →</span><span class="title">Back to overview</span></a>`}
+      </div>
+    </div>
+  `;
+
+  document.getElementById('crumb').innerHTML = `${meta.label} <b>/ ${ch.title}</b>`;
+  document.querySelectorAll('pre code').forEach(block => hljs.highlightElement(block));
+
+  document.getElementById('completeToggle').addEventListener('click', () => toggleProgress(ch.id));
+
+  updateProgressUI();
+  window.scrollTo(0,0);
+}
+
+/* ---------- Routing ---------- */
+function route(){
+  const id = location.hash.replace('#','');
+  if (!id || id === 'home') renderHome();
+  else renderChapter(id);
+  document.getElementById('sidebar').classList.remove('open');
+}
+window.addEventListener('hashchange', route);
+
+/* Global click handler for all data-nav elements (works regardless of host) */
+document.addEventListener('click', (e) => {
+  const el = e.target.closest('[data-nav]');
+  if (!el) return;
+  e.preventDefault();
+  const target = el.dataset.nav === 'home' ? 'home' : el.dataset.id;
+  if (location.hash.replace('#','') === target) {
+    route(); // same hash -- force re-render
+  } else {
+    location.hash = target;
+  }
+});
+
+/* ---------- Theme ---------- */
+const themeBtn = document.getElementById('themeToggle');
+themeBtn.addEventListener('click', () => {
+  document.body.classList.toggle('light');
+  const isLight = document.body.classList.contains('light');
+  themeBtn.textContent = isLight ? '🌙 Dark mode' : '☀️ Light mode';
+  localStorage.setItem('theme', isLight ? 'light' : 'dark');
+});
+if (localStorage.getItem('theme') === 'light') {
+  document.body.classList.add('light');
+  themeBtn.textContent = '🌙 Dark mode';
+}
+
+/* ---------- Mobile menu ---------- */
+document.getElementById('menuToggle').addEventListener('click', () => {
+  document.getElementById('sidebar').classList.toggle('open');
+});
+
+/* ---------- Fuzzy search modal ---------- */
+const searchIndex = chapters.map(ch => ({
+  id: ch.id,
+  title: ch.title,
+  track: ch.track,
+  text: ch.html.replace(/<[^>]+>/g, ' ').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&').replace(/\s+/g,' ').trim()
+}));
+const fuse = new Fuse(searchIndex, {
+  keys: [
+    { name: 'title', weight: 0.6 },
+    { name: 'text', weight: 0.4 }
+  ],
+  threshold: 0.25,
+  ignoreLocation: true,
+  minMatchCharLength: 4,
+  includeMatches: true,
+});
+
+const searchInput = document.getElementById('searchInput');
+const overlay = document.getElementById('searchModalOverlay');
+const modalInput = document.getElementById('modalSearchInput');
+const modalBody = document.getElementById('searchModalBody');
+
+function openSearchModal(){
+  overlay.classList.add('show');
+  modalInput.value = '';
+  modalBody.innerHTML = `<div class="sm-hint">Type to search across all chapters — titles, code samples, and explanations.</div>`;
+  setTimeout(() => modalInput.focus(), 10);
+}
+function closeSearchModal(){
+  overlay.classList.remove('show');
+}
+searchInput.addEventListener('click', openSearchModal);
+searchInput.addEventListener('focus', openSearchModal);
+overlay.addEventListener('click', (e) => { if (e.target === overlay) closeSearchModal(); });
+document.addEventListener('keydown', (e) => {
+  if (e.key === '/' && document.activeElement !== modalInput && !overlay.classList.contains('show')) {
+    e.preventDefault();
+    openSearchModal();
+  }
+  if (e.key === 'Escape' && overlay.classList.contains('show')) {
+    closeSearchModal();
+  }
+});
+
+/* Wrap matched ranges of a string in <mark>, merging overlapping ranges */
+function highlight(str, indices){
+  if (!indices || !indices.length) return escapeHtml(str);
+  const sorted = [...indices].sort((a,b) => a[0]-b[0]);
+  const merged = [];
+  for (const [s,e] of sorted) {
+    if (merged.length && s <= merged[merged.length-1][1] + 1) {
+      merged[merged.length-1][1] = Math.max(merged[merged.length-1][1], e);
+    } else {
+      merged.push([s,e]);
+    }
+  }
+  let out = '', last = 0;
+  for (const [s,e] of merged) {
+    out += escapeHtml(str.slice(last, s));
+    out += '<mark>' + escapeHtml(str.slice(s, e+1)) + '</mark>';
+    last = e+1;
+  }
+  out += escapeHtml(str.slice(last));
+  return out;
+}
+function escapeHtml(str){
+  return str.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+}
+
+/* Find all case-insensitive occurrences of `q` inside `str`, as [start,end] index pairs */
+function findOccurrences(str, q){
+  const lower = str.toLowerCase();
+  const ql = q.toLowerCase();
+  const out = [];
+  let i = 0;
+  while ((i = lower.indexOf(ql, i)) !== -1) {
+    out.push([i, i + ql.length - 1]);
+    i += ql.length;
+  }
+  return out;
+}
+
+/* Build 1-3 highlighted snippets of surrounding context around given index pairs */
+function buildSnippetsFromIndices(text, indices, max = 2){
+  const snippets = [];
+  const used = new Set();
+  for (const [s,e] of indices) {
+    if (snippets.length >= max) break;
+    const start = Math.max(0, s - 60);
+    const end = Math.min(text.length, e + 60);
+    const key = Math.floor(start/40);
+    if (used.has(key)) continue;
+    used.add(key);
+    const localIndices = indices
+      .filter(([is,ie]) => is >= start && ie <= end)
+      .map(([is,ie]) => [is-start, ie-start]);
+    let snippet = text.slice(start, end);
+    let prefix = start > 0 ? '… ' : '';
+    let suffix = end < text.length ? ' …' : '';
+    snippets.push(prefix + highlight(snippet, localIndices) + suffix);
+  }
+  return snippets;
+}
+
+function renderResults(items){
+  if (items.length === 0) return false;
+  modalBody.innerHTML = items.map(({item, titleIdx, snippets}) => `
+    <div class="sm-result" data-nav="chapter" data-id="${item.id}">
+      <div class="sm-result-head">
+        <span class="sm-result-badge ${item.track}">${item.track === 'php' ? 'PHP' : 'Laravel'}</span>
+        <span class="sm-result-title">${titleIdx.length ? highlight(item.title, titleIdx) : escapeHtml(item.title)}</span>
+      </div>
+      ${snippets.map(s => `<div class="sm-snippet">${s}</div>`).join('')}
+    </div>
+  `).join('');
+  return true;
+}
+
+/* Exact substring search across title + body text. Each chapter contributes
+   at most one result, with up to 2 snippets around its best matches. */
+function exactSearch(q){
+  const results = [];
+  for (const item of searchIndex) {
+    const titleIdx = findOccurrences(item.title, q);
+    const textIdx = findOccurrences(item.text, q);
+    if (titleIdx.length === 0 && textIdx.length === 0) continue;
+    const snippets = buildSnippetsFromIndices(item.text, textIdx);
+    // rank: title matches first, then by number of occurrences
+    const score = (titleIdx.length ? -1000 : 0) - (titleIdx.length + textIdx.length);
+    results.push({ item, titleIdx, snippets, score });
+  }
+  results.sort((a,b) => a.score - b.score);
+  return results.slice(0, 10);
+}
+
+modalInput.addEventListener('input', () => {
+  const q = modalInput.value.trim();
+  if (q.length < 2) {
+    modalBody.innerHTML = `<div class="sm-hint">Type to search across all chapters — titles, code samples, and explanations.</div>`;
+    return;
+  }
+
+  // 1) Exact (case-insensitive) substring matches -- clean, contiguous highlights
+  const exact = exactSearch(q);
+  if (renderResults(exact)) return;
+
+  // 2) Fall back to fuzzy matching for typos / close spellings, with a strict threshold
+  const fuzzy = fuse.search(q).slice(0, 10);
+  const fuzzyItems = fuzzy.map(r => {
+    const titleMatch = r.matches.find(m => m.key === 'title');
+    const textMatch = r.matches.find(m => m.key === 'text');
+    const snippets = textMatch ? buildSnippetsFromIndices(r.item.text, [...textMatch.indices]) : [];
+    return { item: r.item, titleIdx: titleMatch ? [...titleMatch.indices] : [], snippets };
+  });
+  if (renderResults(fuzzyItems)) return;
+
+  modalBody.innerHTML = `<div class="sm-empty">No matches for "${escapeHtml(q)}"</div>`;
+});
+
+document.addEventListener('click', (e) => {
+  if (e.target.closest('.sm-result')) {
+    closeSearchModal();
+  }
+});
+
+/* ---------- Init ---------- */
+buildNav();
+route();
+</script>
+</body>
+</html>
