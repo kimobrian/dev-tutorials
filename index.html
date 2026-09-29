@@ -25,7 +25,7 @@
   --teal:#2dd4bf;   --teal-dim:rgba(45,212,191,.1);
   --rust:#e8622a;   --rust-dim:rgba(232,98,42,.1);
   --amber:#f59e0b;  --amber-dim:rgba(245,158,11,.1);
-  --sky:#38bdf8;    --sky-dim:rgba(56,189,248,.1);--purple:#818cf8;--purple-dim:rgba(129,140,248,.1);--php:#9089d6;--php-dim:rgba(144,137,214,.1);--slate:#94a3b8;--slate-dim:rgba(148,163,184,.1);
+  --sky:#38bdf8;    --sky-dim:rgba(56,189,248,.1);--purple:#818cf8;--purple-dim:rgba(129,140,248,.1);--php:#9089d6;--php-dim:rgba(144,137,214,.1);--adonis:#5a45ff;--adonis-dim:rgba(90,69,255,.15);--slate:#94a3b8;--slate-dim:rgba(148,163,184,.1);
   --font:'Inter',sans-serif;--display:'Syne',sans-serif;--mono:'IBM Plex Mono',monospace;
   --radius:12px;
 }
@@ -76,6 +76,7 @@ nav a:hover{color:var(--text);background:var(--surface2)}
 .tut-card.react-routing::before{background:linear-gradient(90deg,var(--pink),#d946ef)}
 .tut-card.fullstack-rr::before{background:linear-gradient(90deg,var(--purple),#a5b4fc)}
 .tut-card.php::before{background:linear-gradient(90deg,var(--php),#ff5d4e)}
+.tut-card.adonis::before{background:linear-gradient(90deg,var(--adonis),#7c6dff)}
 .tut-card.software-engineering::before{background:linear-gradient(90deg,var(--slate),#cbd5e1)}
 .card-body{padding:1.35rem;flex:1}
 .card-icon{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:19px;margin-bottom:.875rem}
@@ -96,6 +97,7 @@ nav a:hover{color:var(--text);background:var(--surface2)}
 .react-routing .card-icon{background:var(--pink-dim);border:1px solid rgba(232,121,249,.2)}
 .fullstack-rr  .card-icon{background:var(--purple-dim);border:1px solid rgba(129,140,248,.2)}
 .php           .card-icon{background:var(--php-dim);   border:1px solid rgba(144,137,214,.2)}
+.adonis        .card-icon{background:var(--adonis-dim); border:1px solid rgba(90,69,255,.2)}
 .software-engineering .card-icon{background:var(--slate-dim);border:1px solid rgba(148,163,184,.2)}
 .card-label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.35rem}
 .devops    .card-label{color:var(--green)}
@@ -115,6 +117,7 @@ nav a:hover{color:var(--text);background:var(--surface2)}
 .react-routing .card-label{color:var(--pink)}
 .fullstack-rr  .card-label{color:var(--purple)}
 .php           .card-label{color:var(--php)}
+.adonis        .card-label{color:var(--adonis)}
 .software-engineering .card-label{color:var(--slate)}
 .card-title{font-family:var(--display);font-weight:700;font-size:1.05rem;color:var(--text);line-height:1.25;margin-bottom:.55rem;letter-spacing:-.02em}
 .card-desc{font-size:12.5px;color:var(--text2);line-height:1.65;margin-bottom:1rem}
@@ -141,6 +144,7 @@ nav a:hover{color:var(--text);background:var(--surface2)}
 .react-routing .card-cta{background:var(--pink-dim);color:var(--pink);  border:1px solid rgba(232,121,249,.25)}
 .fullstack-rr  .card-cta{background:var(--purple-dim);color:var(--purple);border:1px solid rgba(129,140,248,.25)}
 .php           .card-cta{background:var(--php-dim);   color:var(--php);   border:1px solid rgba(144,137,214,.25)}
+.adonis        .card-cta{background:var(--adonis-dim); color:var(--adonis); border:1px solid rgba(90,69,255,.25)}
 .software-engineering .card-cta{background:var(--slate-dim);color:var(--slate);border:1px solid rgba(148,163,184,.25)}
 .tut-card:hover .card-cta{filter:brightness(1.15)}
 /* FEATURES */
@@ -185,8 +189,8 @@ footer a{color:var(--text2);text-decoration:none}
   <h1>Build real things.<br><em>Learn by doing.</em></h1>
   <p>Production-quality tutorials covering backend engineering, cloud infrastructure, frontend, systems programming, and CS fundamentals. Every section has working code, real projects, and concepts explained the way engineers actually use them.</p>
   <div class="hero-stats">
-    <div class="hero-stat"><div class="hero-stat-value">19</div><div class="hero-stat-label">Tutorials</div></div>
-    <div class="hero-stat"><div class="hero-stat-value">340+</div><div class="hero-stat-label">Topics covered</div></div>
+    <div class="hero-stat"><div class="hero-stat-value">20</div><div class="hero-stat-label">Tutorials</div></div>
+    <div class="hero-stat"><div class="hero-stat-value">355+</div><div class="hero-stat-label">Topics covered</div></div>
     <div class="hero-stat"><div class="hero-stat-value">100%</div><div class="hero-stat-label">Free &amp; offline</div></div>
   </div>
 </section>
@@ -260,6 +264,9 @@ footer a{color:var(--text2);text-decoration:none}
         <div class="card-footer"><div class="card-meta"><span class="card-stat">📖 20+ chapters</span><span class="card-stat">⏱ ~14 hrs</span></div><span class="card-cta">Read →</span></div>
       </a>
 
+      <a href="adonis/index.html" class="tut-card adonis">
+        <div class="card-body"><div class="card-icon">🛡️</div><div class="card-label">AdonisJS</div><div class="card-title">AdonisJS: Full-Stack MVC with Node.js</div><div class="card-desc">Build production-ready web apps with AdonisJS — the Laravel-inspired Node.js framework. Covers routing, controllers, Lucid ORM, authentication, middleware, testing, and deployment.</div><div class="card-tags"><span class="tag">AdonisJS</span><span class="tag">Node.js</span><span class="tag">Lucid ORM</span><span class="tag">MVC</span><span class="tag">Auth</span><span class="tag">REST API</span></div></div>
+        <div class="card-footer"><div class="card-meta"><span class="card-stat">📖 15+ chapters</span><span class="card-stat">⏱ ~12 hrs</span></div><span class="card-cta">Read →</span></div>
       </a>
     </div>
   </div>
@@ -349,6 +356,7 @@ footer a{color:var(--text2);text-decoration:none}
 ├── rust/index.html         ├── dsa/index.html
 ├── react-routing/index.html    ├── fullstack-rr/index.html
 ├── php/index.html
+├── adonis/index.html
 ├── software-engineering/index.html
 ├── system-design/index.html└── databases/index.html</pre>
         </div>
