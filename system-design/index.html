@@ -146,6 +146,26 @@ tr:hover td{background:rgba(255,255,255,.015)}
 
 /* highlight */
 mark.sh{background:rgba(251,191,36,0.28);color:var(--amber);border-radius:2px;padding:0 2px;font-style:normal}
+
+  /* ── HOME LINK (back to all tutorials) ── */
+  .home-link {
+    display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0;
+    padding: 5px 10px;
+    border: 1px solid rgba(128,128,128,0.35);
+    border-radius: 8px;
+    color: inherit; opacity: 0.7;
+    font-size: 13px; line-height: 1.2;
+    text-decoration: none; white-space: nowrap;
+    transition: opacity 0.18s, border-color 0.18s;
+  }
+  .home-link:hover { opacity: 1; border-color: currentColor; }
+  .home-link .hl-label { display: none; }
+  @media (min-width: 600px) {
+    .home-link .hl-label { display: inline; }
+  }
+  .home-link.hl-block { margin-bottom: 0.75rem; }
+  .header-center .home-link { margin-right: 12px; }
+  .home-link.hl-block .hl-label { display: inline; }
 </style>
 </head>
 <body>
@@ -155,6 +175,7 @@ mark.sh{background:rgba(251,191,36,0.28);color:var(--amber);border-radius:2px;pa
     <div class="logo-text">System Design<br><span>· Ruby Guide</span></div>
   </div>
   <div class="header-center">
+    <a href="../index.html" class="home-link" aria-label="Back to all tutorials" title="All tutorials">←<span class="hl-label">All tutorials</span></a>
     <button class="search-trigger" onclick="openSearch()">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       <span class="search-trigger-text">Search chapters, topics, concepts…</span>

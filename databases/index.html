@@ -502,12 +502,32 @@ table.data tbody tr:hover td { background: rgba(255,255,255,0.02); }
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+  /* ── HOME LINK (back to all tutorials) ── */
+  .home-link {
+    display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0;
+    padding: 5px 10px;
+    border: 1px solid rgba(128,128,128,0.35);
+    border-radius: 8px;
+    color: inherit; opacity: 0.7;
+    font-size: 13px; line-height: 1.2;
+    text-decoration: none; white-space: nowrap;
+    transition: opacity 0.18s, border-color 0.18s;
+  }
+  .home-link:hover { opacity: 1; border-color: currentColor; }
+  .home-link .hl-label { display: none; }
+  @media (min-width: 600px) {
+    .home-link .hl-label { display: inline; }
+  }
+  .home-link.hl-block { margin-bottom: 0.75rem; }
+  .home-link.hl-block .hl-label { display: inline; }
 </style>
 </head>
 <body>
 
 <!-- Header -->
 <header id="header">
+  <a href="../index.html" class="home-link" aria-label="Back to all tutorials" title="All tutorials">←<span class="hl-label">All tutorials</span></a>
   <div id="logo">🐘<span class="logo-pg">SQL</span> <span style="color:var(--text3);font-size:0.9rem;margin:0 4px">&amp;</span> <span class="logo-mg" style="color:var(--mg)">🍃 Mongo</span></div>
   <div id="search-trigger" onclick="openSearchModal()" title="Search (Ctrl+K)">
     <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>

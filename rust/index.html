@@ -73,6 +73,25 @@ header{padding:10px 24px;border-bottom:1px solid #1e2028;display:flex;align-item
 .sri-ex{font-size:12px;color:#303550;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sh{background:rgba(232,98,42,.22);color:#f5845a;border-radius:2px;padding:0 2px}
 #sft{padding:9px 18px;border-top:1px solid #252830;font-size:11px;color:#303550;display:flex;gap:16px}
+
+  /* ── HOME LINK (back to all tutorials) ── */
+  .home-link {
+    display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0;
+    padding: 5px 10px;
+    border: 1px solid rgba(128,128,128,0.35);
+    border-radius: 8px;
+    color: inherit; opacity: 0.7;
+    font-size: 13px; line-height: 1.2;
+    text-decoration: none; white-space: nowrap;
+    transition: opacity 0.18s, border-color 0.18s;
+  }
+  .home-link:hover { opacity: 1; border-color: currentColor; }
+  .home-link .hl-label { display: none; }
+  @media (min-width: 600px) {
+    .home-link .hl-label { display: inline; }
+  }
+  .home-link.hl-block { margin-bottom: 0.75rem; }
+  .home-link.hl-block .hl-label { display: inline; }
 </style>
 </head>
 <body>
@@ -101,6 +120,7 @@ header{padding:10px 24px;border-bottom:1px solid #1e2028;display:flex;align-item
   <div id="main">
     <div id="pgbar"></div>
     <header>
+      <a href="../index.html" class="home-link" aria-label="Back to all tutorials" title="All tutorials">←<span class="hl-label">All tutorials</span></a>
       <span style="font-size:12px;color:#252830;letter-spacing:.3px">Rust — From Zero to Systems</span>
       <button id="srch-btn" onclick="openS()">
         &#8981;&nbsp;Search&nbsp;

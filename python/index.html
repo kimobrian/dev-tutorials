@@ -114,13 +114,33 @@ tr:nth-child(even) td{background:rgba(255,255,255,.02)}
   #search-overlay{padding-top:40px}
   #search-box{margin:0 12px}
 }
-.dc{color:#e06c75}</style>
+.dc{color:#e06c75}
+  /* ── HOME LINK (back to all tutorials) ── */
+  .home-link {
+    display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0;
+    padding: 5px 10px;
+    border: 1px solid rgba(128,128,128,0.35);
+    border-radius: 8px;
+    color: inherit; opacity: 0.7;
+    font-size: 13px; line-height: 1.2;
+    text-decoration: none; white-space: nowrap;
+    transition: opacity 0.18s, border-color 0.18s;
+  }
+  .home-link:hover { opacity: 1; border-color: currentColor; }
+  .home-link .hl-label { display: none; }
+  @media (min-width: 600px) {
+    .home-link .hl-label { display: inline; }
+  }
+  .home-link.hl-block { margin-bottom: 0.75rem; }
+  .home-link.hl-block .hl-label { display: inline; }
+</style>
 </head>
 <body>
 <div id="ov"></div>
 
 <header id="header">
   <div id="hbg" onclick="toggleSidebar()"><span></span><span></span><span></span></div>
+  <a href="../index.html" class="home-link" aria-label="Back to all tutorials" title="All tutorials">←<span class="hl-label">All tutorials</span></a>
   <div class="logo">Python<span>mastery</span></div>
   <button id="search-trigger" onclick="openSearch()">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>

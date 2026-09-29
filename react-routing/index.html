@@ -176,10 +176,30 @@ mark{background:rgba(124,106,247,.3);color:var(--accent2);border-radius:2px;padd
 .sh{font-size:.67rem;color:var(--text3);display:flex;align-items:center;gap:.3rem}
 .sh kbd{background:var(--bg4);border:1px solid var(--border2);border-radius:3px;padding:1px 5px;font-size:.62rem;font-family:var(--fm)}
 ::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+  /* ── HOME LINK (back to all tutorials) ── */
+  .home-link {
+    display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0;
+    padding: 5px 10px;
+    border: 1px solid rgba(128,128,128,0.35);
+    border-radius: 8px;
+    color: inherit; opacity: 0.7;
+    font-size: 13px; line-height: 1.2;
+    text-decoration: none; white-space: nowrap;
+    transition: opacity 0.18s, border-color 0.18s;
+  }
+  .home-link:hover { opacity: 1; border-color: currentColor; }
+  .home-link .hl-label { display: none; }
+  @media (min-width: 600px) {
+    .home-link .hl-label { display: inline; }
+  }
+  .home-link.hl-block { margin-bottom: 0.75rem; }
+  .home-link.hl-block .hl-label { display: inline; }
 </style>
 </head>
 <body>
 <header>
+  <a href="../index.html" class="home-link" aria-label="Back to all tutorials" title="All tutorials">←<span class="hl-label">All tutorials</span></a>
   <div class="logo">React 19 + React Router v7 <span class="logo-pill">Beginner → Advanced</span></div>
   <div class="hdr-sep"></div>
   <button class="sbtn" id="open-search">

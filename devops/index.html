@@ -53,6 +53,22 @@
     white-space: nowrap;
   }
   .logo span { color: var(--text); }
+  .home-link {
+    display: flex; align-items: center; gap: 5px;
+    padding: 5px 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--muted);
+    font-size: 13px;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: all 0.18s;
+  }
+  .home-link:hover { border-color: var(--accent); color: var(--text); }
+  .home-link .hl-label { display: none; }
+  @media (min-width: 600px) {
+    .home-link .hl-label { display: inline; }
+  }
   .header-pill {
     font-size: 11px; font-weight: 600; letter-spacing: 1px;
     text-transform: uppercase;
@@ -686,6 +702,7 @@
 
 <!-- HEADER -->
 <header>
+  <a href="../index.html" class="home-link" aria-label="Back to all tutorials" title="All tutorials">←<span class="hl-label">All tutorials</span></a>
   <div class="logo" onclick="showPage('home')" style="cursor:pointer;">Dev<span>Ops</span></div>
   <div class="header-pill">Node.js + AWS</div>
   <button class="search-trigger" onclick="openSearch()" aria-label="Search tutorial">

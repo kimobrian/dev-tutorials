@@ -462,11 +462,31 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg3)}
   flex: 1;
   margin-bottom: 0;
 }
+
+  /* ── HOME LINK (back to all tutorials) ── */
+  .home-link {
+    display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0;
+    padding: 5px 10px;
+    border: 1px solid rgba(128,128,128,0.35);
+    border-radius: 8px;
+    color: inherit; opacity: 0.7;
+    font-size: 13px; line-height: 1.2;
+    text-decoration: none; white-space: nowrap;
+    transition: opacity 0.18s, border-color 0.18s;
+  }
+  .home-link:hover { opacity: 1; border-color: currentColor; }
+  .home-link .hl-label { display: none; }
+  @media (min-width: 600px) {
+    .home-link .hl-label { display: inline; }
+  }
+  .home-link.hl-block { margin-bottom: 0.75rem; }
+  .home-link.hl-block .hl-label { display: inline; }
 </style>
 </head>
 <body>
 <header class="site-header">
   <button class="hamburger" id="hamburger" onclick="toggleSidebar()" aria-label="Toggle menu">&#9776;</button>
+  <a href="../index.html" class="home-link" aria-label="Back to all tutorials" title="All tutorials">←<span class="hl-label">All tutorials</span></a>
   <button class="logo" onclick="goToSection(0)">
     <div class="logo-gem"></div>
     <span class="logo-text">Ruby<span>+</span>Rails</span>
