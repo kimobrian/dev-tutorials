@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CS Foundations &mdash; A Tutorial Before Your First Language</title>
+<style>
+:root{
+  --bg: #0d1117;
+  --bg-elevated: #131a24;
+  --sidebar-bg: #0a0f16;
+  --border: #1f2937;
+  --text: #d7dee8;
+  --text-dim: #8b96a5;
+  --text-faint: #5c6674;
+  --accent: #7c9eff;
+  --accent-soft: rgba(124,158,255,0.12);
+  --accent-strong: #a6c0ff;
+  --code-bg: #0a0e14;
+  --code-text: #c9d1d9;
+  --warn: #e6b566;
+  --warn-bg: rgba(230,181,102,0.08);
+  --tip: #6ee7b7;
+  --tip-bg: rgba(110,231,183,0.08);
+  --radius: 8px;
+  --sidebar-w: 300px;
+  --header-h: 60px;
+  --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: "SF Mono", "Fira Code", Menlo, Consolas, "Courier New", monospace;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--font-ui);
+  line-height:1.65;
+  -webkit-font-smoothing:antialiased;
+}
+a{color:var(--accent);text-decoration:none;}
+a:hover{text-decoration:underline;}
+
+/* ---------- layout ---------- */
+#app{display:flex;min-height:100vh;}
+
+#sidebar{
+  position:fixed;
+  top:0; left:0; bottom:0;
+  width:var(--sidebar-w);
+  background:var(--sidebar-bg);
+  border-right:1px solid var(--border);
+  overflow-y:auto;
+  z-index:20;
+  transition:transform .2s ease;
+}
+#sidebar::-webkit-scrollbar{width:8px;}
+#sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
+
+.brand{
+  padding:20px 20px 14px 20px;
+  border-bottom:1px solid var(--border);
+  position:sticky; top:0;
+  background:var(--sidebar-bg);
+  z-index:2;
+}
+.brand-title{
+  font-size:15px; font-weight:700; color:var(--text);
+  display:flex; align-items:center; gap:8px;
+  letter-spacing:.2px;
+}
+.brand-title .glyph{
+  width:22px;height:22px;border-radius:6px;
+  background:linear-gradient(135deg,var(--accent),#5b7fd8);
+  display:inline-flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:800;color:#0a0e14;
+  flex:none;
+}
+.brand-sub{font-size:11.5px;color:var(--text-faint);margin-top:4px;}
+
+.progress-wrap{padding:12px 20px 4px 20px;}
+.progress-track{height:4px;background:var(--border);border-radius:2px;overflow:hidden;}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--tip));border-radius:2px;transition:width .25s ease;}
+.progress-label{font-size:10.5px;color:var(--text-faint);margin-top:6px;}
+
+nav.toc{padding:6px 10px 30px 10px;}
+.toc-category{margin-top:16px;}
+.toc-category-label{
+  font-size:11px;text-transform:uppercase;letter-spacing:.08em;
+  color:var(--text-faint);padding:6px 10px;font-weight:700;
+}
+.toc-link{
+  display:flex; align-items:center; gap:8px;
+  padding:7px 10px; margin:1px 4px;
+  border-radius:6px;
+  font-size:13.5px;
+  color:var(--text-dim);
+  cursor:pointer;
+  white-space:normal;
+  line-height:1.35;
+}
+.toc-link:hover{background:var(--bg-elevated);color:var(--text);text-decoration:none;}
+.toc-link.active{background:var(--accent-soft);color:var(--accent-strong);font-weight:600;}
+.toc-dot{
+  width:6px;height:6px;border-radius:50%;flex:none;
+  background:var(--border);
+}
+.toc-link.visited .toc-dot{background:var(--tip);}
+.toc-link.active .toc-dot{background:var(--accent);}
+
+#content-col{
+  margin-left:var(--sidebar-w);
+  flex:1;
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+}
+
+header#topbar{
+  position:sticky; top:0;
+  height:var(--header-h);
+  background:rgba(13,17,23,0.85);
+  backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--border);
+  display:flex; align-items:center; gap:14px;
+  padding:0 24px;
+  z-index:15;
+}
+#menu-toggle{
+  display:none;
+  background:none;border:1px solid var(--border);border-radius:6px;
+  color:var(--text-dim); width:34px;height:34px;
+  cursor:pointer; font-size:16px; flex:none;
+}
+
+/* search trigger button (opens modal) */
+.search-trigger{
+  display:flex;align-items:center;gap:8px;
+  background:var(--bg-elevated);
+  border:1px solid var(--border);
+  color:var(--text-dim);
+  padding:9px 10px 9px 12px;
+  border-radius:8px;
+  font-size:13.5px;
+  cursor:pointer;
+  flex:1;max-width:480px;
+  font-family:var(--font-ui);
+  text-align:left;
+}
+.search-trigger:hover{border-color:var(--accent);color:var(--text);}
+.search-trigger .search-icon{font-size:13px;color:var(--text-faint);flex:none;}
+.search-trigger-label{flex:1;}
+.search-trigger .search-kbd{
+  font-size:10.5px;color:var(--text-faint);
+  border:1px solid var(--border);border-radius:4px;padding:2px 6px;
+  flex:none;
+}
+
+.header-spacer{flex:1;}
+.header-link{
+  font-size:12.5px;color:var(--text-dim);
+  border:1px solid var(--border); border-radius:6px;
+  padding:6px 10px;
+}
+.header-link:hover{color:var(--text);border-color:var(--text-faint);text-decoration:none;}
+
+/* ---------- search modal ---------- */
+.modal-overlay{
+  position:fixed; inset:0;
+  background:rgba(3,6,10,0.7);
+  display:none;
+  align-items:flex-start; justify-content:center;
+  padding-top:11vh;
+  z-index:100;
+}
+.modal-overlay.open{display:flex;}
+.modal-panel{
+  width:92%; max-width:600px; max-height:70vh;
+  background:var(--bg-elevated);
+  border:1px solid var(--border);
+  border-radius:14px;
+  box-shadow:0 24px 60px rgba(0,0,0,0.55);
+  display:flex; flex-direction:column;
+  overflow:hidden;
+}
+.modal-input-row{
+  display:flex; align-items:center; gap:10px;
+  padding:14px 18px;
+  border-bottom:1px solid var(--border);
+  flex:none;
+}
+.modal-input-row .search-icon{font-size:15px;color:var(--text-faint);flex:none;}
+#modal-search-input{
+  flex:1; background:none; border:none; outline:none;
+  color:var(--text); font-size:16px; font-family:var(--font-ui);
+}
+#modal-search-input::placeholder{color:var(--text-faint);}
+.modal-esc{
+  font-size:10.5px; color:var(--text-faint);
+  border:1px solid var(--border); border-radius:4px; padding:2px 6px;
+  flex:none;
+}
+.modal-results{overflow-y:auto; padding:8px; flex:1;}
+.modal-section-label{
+  font-size:11px; text-transform:uppercase; letter-spacing:.06em;
+  color:var(--text-faint); font-weight:700;
+  padding:8px 10px 6px 10px;
+}
+.modal-empty{padding:32px 16px; text-align:center; color:var(--text-faint); font-size:13.5px;}
+
+.result-item{
+  padding:10px 12px;
+  cursor:pointer;
+  border-radius:8px;
+}
+.result-item:hover, .result-item.hi{background:var(--accent-soft);}
+.result-title{font-size:13.5px;color:var(--text);font-weight:600;}
+.result-meta{font-size:11px;color:var(--text-faint);margin-top:2px;}
+.result-snippet{font-size:12.5px;color:var(--text-faint);margin-top:5px;line-height:1.5;}
+.result-title mark, .result-snippet mark{
+  background:transparent;color:var(--accent-strong);font-weight:800;
+}
+
+main#page{
+  flex:1;
+  padding:44px 48px 30px 48px;
+  max-width:840px;
+  width:100%;
+}
+.chapter-eyebrow{
+  font-size:12px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+  color:var(--accent);
+  margin-bottom:10px;
+}
+.chapter-title{
+  font-size:32px; font-weight:800; letter-spacing:-.02em;
+  color:#fff; margin:0 0 28px 0; line-height:1.25;
+}
+.chapter-body p{margin:0 0 18px 0; color:var(--text); font-size:15.5px;}
+.chapter-body ul{margin:0 0 20px 0; padding-left:22px;}
+.chapter-body li{margin-bottom:9px; font-size:15.5px; color:var(--text);}
+.chapter-body strong{color:#fff; font-weight:700;}
+.chapter-body em{color:var(--accent-strong); font-style:italic;}
+.chapter-body code{
+  font-family:var(--font-mono);
+  background:var(--code-bg);
+  border:1px solid var(--border);
+  padding:1.5px 5px;
+  border-radius:4px;
+  font-size:.87em;
+  color:#f0b46e;
+}
+.chapter-body pre{
+  background:var(--code-bg);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:18px 20px;
+  overflow-x:auto;
+  margin:0 0 22px 0;
+}
+.chapter-body pre code{
+  background:none; border:none; padding:0;
+  font-size:13px; line-height:1.6; color:var(--code-text);
+  white-space:pre;
+}
+.chapter-body h2,.chapter-body h3{color:#fff;margin:28px 0 12px 0;}
+
+/* inline C++ syntax highlighting (no external library needed) */
+.cpp-kw{color:#ff8fab;font-weight:600;}
+.cpp-type{color:#e5c07b;}
+.cpp-str{color:#98c379;}
+.cpp-num{color:#d19a66;}
+.cpp-com{color:#6b7688;font-style:italic;}
+.cpp-pre{color:#61afef;}
+.cpp-fn{color:#7dc4ff;}
+
+.callout{
+  border-radius:10px; padding:14px 16px; margin:0 0 22px 0;
+  border:1px solid var(--border);
+  position:relative;
+}
+.callout p{margin:6px 0 0 0 !important; font-size:14px !important; color:var(--text-dim) !important;}
+.callout-label{
+  font-size:10.5px; font-weight:800; letter-spacing:.08em;
+  padding:2px 7px; border-radius:4px;
+}
+.callout-tip{background:var(--tip-bg); border-color:rgba(110,231,183,0.25);}
+.callout-tip .callout-label{background:rgba(110,231,183,0.18); color:var(--tip);}
+.callout-warning{background:var(--warn-bg); border-color:rgba(230,181,102,0.25);}
+.callout-warning .callout-label{background:rgba(230,181,102,0.18); color:var(--warn);}
+
+.pagenav{
+  display:flex; justify-content:space-between; gap:16px;
+  margin-top:44px; padding-top:24px; border-top:1px solid var(--border);
+}
+.pagenav-btn{
+  flex:1; max-width:360px;
+  border:1px solid var(--border); border-radius:10px;
+  padding:14px 16px;
+  cursor:pointer;
+  display:flex; flex-direction:column; gap:4px;
+  background:var(--bg-elevated);
+}
+.pagenav-btn:hover{border-color:var(--accent); text-decoration:none;}
+.pagenav-btn.next{align-items:flex-end; text-align:right; margin-left:auto;}
+.pagenav-dir{font-size:10.5px; color:var(--text-faint); text-transform:uppercase; letter-spacing:.06em; font-weight:700;}
+.pagenav-title{font-size:14px; color:var(--text); font-weight:600;}
+.pagenav-spacer{flex:1; max-width:360px;}
+
+footer#page-footer{
+  padding:20px 48px 60px 48px; max-width:840px;
+  font-size:12px; color:var(--text-faint);
+}
+
+@media (max-width: 880px){
+  :root{--sidebar-w:280px;}
+  #sidebar{transform:translateX(-100%);}
+  body.sidebar-open #sidebar{transform:translateX(0);}
+  #content-col{margin-left:0;}
+  #menu-toggle{display:inline-flex; align-items:center; justify-content:center;}
+  main#page{padding:28px 20px 20px 20px;}
+  footer#page-footer{padding:10px 20px 40px 20px;}
+  .chapter-title{font-size:26px;}
+}
+body.sidebar-open::after{
+  content:""; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:19;
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div class="brand">
+      <div class="brand-title"><span class="glyph">C++</span> CS Foundations</div>
+      <div class="brand-sub">Software engineering concepts before your first language</div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+      <div class="progress-label" id="progress-label">0 of 32 chapters read</div>
+    </div>
+    <nav class="toc" id="toc"></nav>
+  </aside>
+
+  <div id="content-col">
+    <header id="topbar">
+      <button id="menu-toggle" aria-label="Toggle menu">&#9776;</button>
+      <button id="search-trigger" class="search-trigger" type="button">
+        <span class="search-icon">&#128269;</span>
+        <span class="search-trigger-label">Search chapters&hellip;</span>
+        <span class="search-kbd">/</span>
+      </button>
+      <div class="header-spacer"></div>
+      <a class="header-link" href="#welcome">Start from the beginning</a>
+    </header>
+
+    <main id="page"></main>
+    <footer id="page-footer">CS Foundations Tutorial &middot; all examples in C++ &middot; built for learners starting before their first language</footer>
+  </div>
+</div>
+
+<div id="search-modal" class="modal-overlay" aria-hidden="true">
+  <div class="modal-panel" role="dialog" aria-modal="true" aria-label="Search chapters">
+    <div class="modal-input-row">
+      <span class="search-icon">&#128269;</span>
+      <input id="modal-search-input" type="text" placeholder="Search chapters&hellip;" autocomplete="off" spellcheck="false">
+      <span class="modal-esc">ESC</span>
+    </div>
+    <div id="modal-results" class="modal-results"></div>
+  </div>
+</div>
+
+<script>
+const CHAPTERS = [{"id": "welcome", "title": "Welcome & How to Use This Tutorial", "category": "Foundations", "body": "<p>This tutorial exists to answer a question a lot of beginners never get a straight answer to: <em>what do I actually need to understand before I start typing code into a specific language?<\/em> Most courses drop you straight into syntax &mdash; loops, semicolons, brackets &mdash; without ever explaining the ideas underneath. You can memorize syntax and still have no idea why a program works, or how to think about a problem before you start writing.<\/p>\n<p>This is a language-agnostic tour of software engineering and computer science concepts, illustrated with runnable C++ examples. C++ was chosen as the teaching language because it doesn't hide much from you &mdash; you can see memory, types, and control flow directly, which makes it a good lens for understanding what's happening underneath any higher-level language you learn later.<\/p>\n<p>The tutorial is organized into eight sections, moving from how computers work at a conceptual level, through core programming constructs, into memory management, object-oriented design, and finally algorithms and data structures. Each page builds on the ones before it, so if you're brand new, start from the beginning and use the <strong>Next<\/strong> button at the bottom of each page. If you already know some material, use the sidebar or the search bar (press <code>/<\/code> to focus it) to jump around.<\/p>\n<div class=\"callout callout-tip\"><span class=\"callout-label\">TIP<\/span><p>You don't need a C++ compiler to benefit from this. Read the code, reason about what it does, then try typing it into any online C++ compiler (like Compiler Explorer or repl.it) to confirm your understanding.<\/p><\/div>\n<p>By the end, you won't be a C++ expert &mdash; that's not the goal. You'll have a working mental model of how programs are structured, how memory behaves, how data is organized, and how to reason about efficiency. That model transfers directly to Python, JavaScript, Java, Rust, Go, or whatever you learn next.<\/p>"}, {"id": "what-is-cs", "title": "What Is Computer Science & Software Engineering?", "category": "Foundations", "body": "<p>Computer science is the study of computation: what can be computed, how efficiently, and with what resources. It is a field of mathematics and logic as much as it is a practical craft. Software engineering, by contrast, is the applied discipline of building working, maintainable software systems using the ideas computer science provides. One asks <em>what is possible<\/em>; the other asks <em>how do we build it well, on a deadline, with other humans<\/em>.<\/p>\n<p>A useful way to separate the two: a computer scientist might prove that sorting a list can't be done faster than <code>O(n log n)<\/code> comparisons in the general case. A software engineer decides which sorting function to call, how to structure the surrounding code so it's testable, and how to make sure the system still works when the input is empty, huge, or malformed.<\/p>\n<p>In practice, every working programmer moves between both hats constantly. You'll reason like a computer scientist when you ask &quot;how does this algorithm's runtime grow as my data grows?&quot; and you'll reason like a software engineer when you ask &quot;how do I structure this code so my teammate can understand it in six months?&quot;<\/p>\n<p>Some core ideas that recur throughout this tutorial and throughout the profession:<\/p>\n<ul><li><strong>Abstraction<\/strong> &mdash; hiding complexity behind a simpler interface, so you can use a thing without knowing exactly how it works internally.<\/li><li><strong>Decomposition<\/strong> &mdash; breaking a large problem into smaller, independently solvable pieces.<\/li><li><strong>Correctness<\/strong> &mdash; does the program do what it's supposed to do, for all valid inputs, not just the ones you happened to test?<\/li><li><strong>Efficiency<\/strong> &mdash; how much time and memory does solving the problem cost, and does that cost stay reasonable as the problem grows?<\/li><li><strong>Maintainability<\/strong> &mdash; can this code be understood, modified, and extended by someone other than the person who wrote it?<\/li><\/ul>\n<div class=\"callout callout-tip\"><span class=\"callout-label\">TIP<\/span><p>Every concept in this tutorial &mdash; variables, loops, pointers, data structures &mdash; is really just a tool in service of these five ideas. Keep them in the back of your mind.<\/p><\/div>"}, {"id": "how-computers-work", "title": "How Computers Work: Bits, Bytes & Memory", "category": "Foundations", "body": "<p>At the lowest level, a computer only understands two states: on and off, represented as <code>1<\/code> and <code>0<\/code>. Each of these is called a <strong>bit<\/strong> (binary digit). Everything your computer does &mdash; every number, letter, image, and sound &mdash; is ultimately encoded as a sequence of bits.<\/p>\n<p>Bits are grouped into <strong>bytes<\/strong>, 8 bits each. A single byte can represent 2<sup>8<\/sup> = 256 distinct values (0&ndash;255). Bytes are the smallest unit of memory your program typically works with directly. Larger values &mdash; like a typical integer &mdash; are usually built from multiple bytes (commonly 4 bytes, or 32 bits, for a standard <code>int<\/code>).<\/p>\n<p>Your computer's <strong>memory (RAM)<\/strong> is a huge array of bytes, each with a unique numeric <strong>address<\/strong>. Think of memory as a street of houses, each with a house number (address) and something stored inside (the byte's value). When your program creates a variable, the system reserves one or more bytes of memory and remembers the address so it can find that data again.<\/p>\n<p>The <strong>CPU (Central Processing Unit)<\/strong> is the part of the computer that actually executes instructions &mdash; add these two numbers, compare these two values, jump to this instruction if a condition is true. It reads instructions and data from memory, performs a tiny operation, and writes results back. A running program is, at its core, an extremely long, extremely fast sequence of these tiny steps.<\/p>\n<div class=\"callout callout-tip\"><span class=\"callout-label\">TIP<\/span><p>Numbers, text, images, and sound are all just bits interpreted differently. The character 'A' is stored as the byte value 65 (in the common ASCII/Unicode encoding) &mdash; the same 8 bits could equally represent the number 65. Meaning comes from how a program interprets the bits, not from the bits themselves.<\/p><\/div>\n<p>When you declare a variable in a program, you are really asking the system to reserve a chunk of memory of a specific size and to remember its address under a name you can refer to. This idea &mdash; that a variable is a named, typed window into memory &mdash; is the foundation for everything that follows, especially when we get to pointers later in this tutorial.<\/p>"}, {"id": "programs-compilers", "title": "Programs, Compilers & the Build Process", "category": "Foundations", "body": "<p>The C++ code you write is called <strong>source code<\/strong> &mdash; readable text meant for humans. Your CPU cannot execute it directly; it only understands <strong>machine code<\/strong>, raw binary instructions specific to its hardware. The program that translates source code into machine code is called a <strong>compiler<\/strong>.<\/p>\n<p>For a language like C++, the journey from source code to a running program typically has several stages:<\/p>\n<ul><li><strong>Preprocessing<\/strong> &mdash; handles directives like <code>#include<\/code>, which pull in code from other files, and macros.<\/li><li><strong>Compilation<\/strong> &mdash; translates the preprocessed source into an intermediate form and checks it for errors (syntax errors, type errors, and so on).<\/li><li><strong>Assembly<\/strong> &mdash; converts that intermediate form into actual machine instructions, producing an <strong>object file<\/strong>.<\/li><li><strong>Linking<\/strong> &mdash; combines your object files with any libraries you use into a single, runnable <strong>executable<\/strong>.<\/li><\/ul>\n<p>This matters because it explains two very different kinds of errors you'll encounter. A <strong>compile-time error<\/strong> happens before the program ever runs &mdash; a missing semicolon, a misspelled variable name, mismatched types. A <strong>runtime error<\/strong> happens while the program is executing &mdash; dividing by zero, accessing memory you shouldn't, running out of memory. Compile-time errors are generally easier to fix because the compiler tells you exactly where the problem is; runtime errors can be much harder to track down.<\/p>\n<p>Not all languages work this way. C++ is a <strong>compiled language<\/strong>: it's translated to machine code ahead of time, which is why C++ programs tend to run very fast. Other languages, like Python or JavaScript, are typically <strong>interpreted<\/strong>: an interpreter reads and executes source code line by line at runtime, without a separate compilation step (though many modern interpreters use just-in-time compilation internally to speed things up). Understanding this distinction will help you reason about performance and errors no matter what language you use next.<\/p>\n<div class=\"callout callout-tip\"><span class=\"callout-label\">TIP<\/span><p>When you eventually run a C++ file, you'll type something like <code>g++ hello.cpp -o hello<\/code> to compile it, then <code>./hello<\/code> to run the resulting executable. Those two steps &mdash; compile, then run &mdash; are exactly the pipeline described above.<\/p><\/div>"}, {"id": "hello-world", "title": "Your First Program: Hello, World!", "category": "C++ Basics", "body": "<p>Tradition demands that the first program in any language prints the words &quot;Hello, World!&quot;. It's a small program, but it touches almost every foundational idea we'll build on: including a library, defining an entry point, and producing output.<\/p>\n<pre><code class=\"language-cpp\">#include &lt;iostream&gt;\n\nint main() {\n    std::cout &lt;&lt; &quot;Hello, World!&quot; &lt;&lt; std::endl;\n    return 0;\n}<\/code><\/pre>\n<p>Let's take this apart line by line.<\/p>\n<ul><li><code>#include &lt;iostream&gt;<\/code> tells the preprocessor to pull in the input/output stream library, which gives us access to <code>std::cout<\/code> for printing text.<\/li><li><code>int main() { ... }<\/code> defines the <strong>entry point<\/strong> of the program &mdash; the function that runs first when the executable starts. Every C++ program must have exactly one <code>main<\/code> function.<\/li><li><code>std::cout &lt;&lt; &quot;Hello, World!&quot; &lt;&lt; std::endl;<\/code> sends the text to standard output (usually your terminal). The <code>&lt;&lt;<\/code> operator here means &quot;insert into the stream,&quot; and <code>std::endl<\/code> inserts a newline and flushes the output.<\/li><li><code>return 0;<\/code> tells the operating system the program finished successfully. By convention, returning <code>0<\/code> from <code>main<\/code> means &quot;no error&quot;; any nonzero value signals that something went wrong.<\/li><\/ul>\n<div class=\"callout callout-tip\"><span class=\"callout-label\">TIP<\/span><p>The <code>std::<\/code> prefix means the name comes from the <strong>standard namespace<\/strong>, a way C++ avoids naming collisions between the language's built-in tools and your own code. You'll sometimes see <code>using namespace std;<\/code> at the top of beginner code to avoid typing <code>std::<\/code> everywhere &mdash; it's convenient for small examples but generally discouraged in larger projects because it can cause naming conflicts.<\/p><\/div>"}, {"id": "variables-types", "title": "Variables & Data Types", "category": "C++ Basics", "body": "<p>A <strong>variable<\/strong> is a named piece of memory that holds a value your program can read and change. Every variable in C++ has a <strong>type<\/strong>, which determines what kind of value it can hold, how much memory it occupies, and what operations are valid on it. C++ is <strong>statically typed<\/strong>: you declare a variable's type up front, and the compiler enforces it &mdash; you can't later store a string in a variable declared to hold an integer.<\/p>\n<pre><code class=\"language-cpp\">int age = 25;              // whole numbers\ndouble price = 19.99;      // decimal (floating-point) numbers\nchar grade = &#x27;A&#x27;;          // a single character\nbool isEnrolled = true;    // true or false\nstd::string name = &quot;Ada&quot;;  // text (needs #include &lt;string&gt;)<\/code><\/pre>\n<p>Some of the most common built-in types:<\/p>\n<ul><li><code>int<\/code> &mdash; whole numbers, typically 4 bytes, roughly &minus;2.1 billion to 2.1 billion.<\/li><li><code>double<\/code> / <code>float<\/code> &mdash; numbers with a decimal point. <code>double<\/code> is higher precision and more commonly used.<\/li><li><code>char<\/code> &mdash; a single character, stored as 1 byte.<\/li><li><code>bool<\/code> &mdash; <code>true<\/code> or <code>false<\/code>.<\/li><li><code>std::string<\/code> &mdash; a sequence of characters (text). Not a primitive type, but part of the standard library and used constantly.<\/li><\/ul>\n<p>Variables must be declared before use, and can optionally be initialized (given a starting value) at the same time. Using an uninitialized variable in C++ is dangerous &mdash; it may contain leftover garbage data from whatever was previously in that memory location, so always initialize your variables.<\/p>\n<pre><code class=\"language-cpp\">int count;        // declared but NOT initialized -- contains garbage!\nint total = 0;     // declared AND initialized -- safe to use<\/code><\/pre>\n<div class=\"callout callout-tip\"><span class=\"callout-label\">TIP<\/span><p>Use <code>const<\/code> when a value should never change after it's set: <code>const double PI = 3.14159;<\/code>. This isn't just documentation &mdash; the compiler will produce an error if your code accidentally tries to modify it, catching a whole class of bugs before the program ever runs.<\/p><\/div>"}, {"id": "operators", "title": "Operators & Expressions", "category": "C++ Basics", "body": "<p>Operators combine values into new values. An <strong>expression<\/strong> is anything that evaluates to a value &mdash; a single variable, or a whole combination of operators and operands.<\/p>\n<p><strong>Arithmetic operators:<\/strong><\/p>\n<pre><code class=\"language-cpp\">int a = 10, b = 3;\na + b;   // 13  addition\na - b;   //  7  subtraction\na * b;   // 30  multiplication\na / b;   //  3  integer division -- fractional part is dropped!\na % b;   //  1  modulo -- the remainder after division<\/code><\/pre>\n<div class=\"callout callout-warning\"><span class=\"callout-label\">WARNING<\/span><p>Integer division truncates. <code>10 / 3<\/code> gives <code>3<\/code>, not <code>3.333<\/code>, because both operands are integers. To get a decimal result, at least one operand needs to be a floating-point type: <code>10.0 / 3<\/code> gives <code>3.333...<\/code>. This trips up nearly every beginner at least once.<\/p><\/div>\n<p><strong>Comparison operators<\/strong> evaluate to a <code>bool<\/code>: <code>==<\/code> (equal), <code>!=<\/code> (not equal), <code>&lt;<\/code>, <code>&gt;<\/code>, <code>&lt;=<\/code>, <code>&gt;=<\/code>.<\/p>\n<p><strong>Logical operators<\/strong> combine boolean values: <code>&amp;&amp;<\/code> (AND &mdash; true only if both sides are true), <code>||<\/code> (OR &mdash; true if either side is true), <code>!<\/code> (NOT &mdash; flips true/false).<\/p>\n<pre><code class=\"language-cpp\">bool canVote = (age &gt;= 18) &amp;&amp; (isCitizen == true);\nbool needsHelp = isLost || isInjured;\nbool isMinor = !isAdult;<\/code><\/pre>\n<p><strong>Assignment operators<\/strong> let you update a variable using its current value in shorthand form:<\/p>\n<pre><code class=\"language-cpp\">int score = 10;\nscore += 5;   // same as: score = score + 5;   -&gt; 15\nscore -= 3;   // same as: score = score - 3;   -&gt; 12\nscore *= 2;   // same as: score = score * 2;   -&gt; 24\nscore++;      // same as: score = score + 1;   -&gt; 25  (increment)\nscore--;      // same as: score = score - 1;   -&gt; 24  (decrement)<\/code><\/pre>"}, {"id": "conditionals", "title": "Control Flow: Conditionals", "category": "C++ Basics", "body": "<p>Programs rarely execute every line unconditionally &mdash; they need to make decisions. <strong>Conditional statements<\/strong> let a program run different code depending on whether some condition is true or false.<\/p>\n<pre><code class=\"language-cpp\">int temperature = 72;\n\nif (temperature &gt; 85) {\n    std::cout &lt;&lt; &quot;It&#x27;s hot outside.&quot; &lt;&lt; std::endl;\n} else if (temperature &lt; 50) {\n    std::cout &lt;&lt; &quot;It&#x27;s cold outside.&quot; &lt;&lt; std::endl;\n} else {\n    std::cout &lt;&lt; &quot;The weather is mild.&quot; &lt;&lt; std::endl;\n}<\/code><\/pre>\n<p>The <code>if<\/code> block runs only when its condition evaluates to <code>true<\/code>. An optional chain of <code>else if<\/code> blocks lets you check additional conditions in order, and an optional final <code>else<\/code> catches everything that didn't match any prior condition. Only one branch ever executes.<\/p>\n<p>For situations with many discrete possibilities based on a single value, a <code>switch<\/code> statement can be clearer than a long <code>if<\/code>/<code>else if<\/code> chain:<\/p>\n<pre><code class=\"language-cpp\">char grade = &#x27;B&#x27;;\n\nswitch (grade) {\n    case &#x27;A&#x27;:\n        std::cout &lt;&lt; &quot;Excellent!&quot; &lt;&lt; std::endl;\n        break;\n    case &#x27;B&#x27;:\n        std::cout &lt;&lt; &quot;Good job.&quot; &lt;&lt; std::endl;\n        break;\n    case &#x27;C&#x27;:\n        std::cout &lt;&lt; &quot;You passed.&quot; &lt;&lt; std::endl;\n        break;\n    default:\n        std::cout &lt;&lt; &quot;Grade not recognized.&quot; &lt;&lt; std::endl;\n}<\/code><\/pre>\n<div class=\"callout callout-warning\"><span class=\"callout-label\">WARNING<\/span><p>Don't forget the <code>break;<\/code> at the end of each case. Without it, execution 'falls through' into the next case, running its code too &mdash; occasionally useful, but usually a bug.<\/p><\/div>\n<p>C++ also has a compact <strong>ternary operator<\/strong> for simple either/or expressions: <code>condition ? valueIfTrue : valueIfFalse<\/code>.<\/p>\n<pre><code class=\"language-cpp\">int age = 20;\nstd::string status = (age &gt;= 18) ? &quot;adult&quot; : &quot;minor&quot;;<\/code><\/pre>"}, {"id": "loops", "title": "Control Flow: Loops", "category": "C++ Basics", "body": "<p>Loops let a program repeat a block of code without duplicating it. There are three main loop constructs in C++, and choosing the right one is mostly about how you know when to stop.<\/p>\n<p><strong>The <code>for<\/code> loop<\/strong> is ideal when you know in advance how many times you want to repeat, or you're iterating over a range:<\/p>\n<pre><code class=\"language-cpp\">for (int i = 0; i &lt; 5; i++) {\n    std::cout &lt;&lt; &quot;Iteration: &quot; &lt;&lt; i &lt;&lt; std::endl;\n}\n// prints Iteration: 0 through Iteration: 4<\/code><\/pre>\n<p>A <code>for<\/code> loop has three parts separated by semicolons: an initializer (runs once, before the loop starts), a condition (checked before every iteration &mdash; the loop stops once it's false), and an update (runs after every iteration).<\/p>\n<p><strong>The <code>while<\/code> loop<\/strong> is better when the number of repetitions isn't known ahead of time &mdash; you keep going until some condition changes:<\/p>\n<pre><code class=\"language-cpp\">int attempts = 0;\nbool success = false;\n\nwhile (!success &amp;&amp; attempts &lt; 3) {\n    // try something...\n    attempts++;\n    if (attempts == 2) success = true;  // pretend it worked on try 2\n}<\/code><\/pre>\n<p><strong>The <code>do-while<\/code> loop<\/strong> is like <code>while<\/code>, but it checks the condition <em>after<\/em> running the body, guaranteeing the body runs at least once:<\/p>\n<pre><code class=\"language-cpp\">int input;\ndo {\n    std::cout &lt;&lt; &quot;Enter a positive number: &quot;;\n    std::cin &gt;&gt; input;\n} while (input &lt;= 0);<\/code><\/pre>\n<p>Two keywords help control loops from the inside: <code>break<\/code> exits the loop immediately, and <code>continue<\/code> skips the rest of the current iteration and jumps to the next one.<\/p>\n<pre><code class=\"language-cpp\">for (int i = 0; i &lt; 10; i++) {\n    if (i == 3) continue;  // skip printing 3\n    if (i == 7) break;     // stop entirely once we hit 7\n    std::cout &lt;&lt; i &lt;&lt; &quot; &quot;;\n}\n// prints: 0 1 2 4 5 6<\/code><\/pre>\n<div class=\"callout callout-tip\"><span class=\"callout-label\">TIP<\/span><p>A loop whose condition never becomes false is called an <strong>infinite loop<\/strong> &mdash; usually a bug, but sometimes intentional (like the main loop of a video game, which is broken out of deliberately).<\/p><\/div>"}, {"id": "functions", "title": "Functions", "category": "C++ Basics", "body": "<p>A <strong>function<\/strong> is a named, reusable block of code that performs a specific task. Functions are the primary tool for <strong>decomposition<\/strong> &mdash; breaking a large problem into smaller, understandable, testable pieces &mdash; and for avoiding repeated code.<\/p>\n<pre><code class=\"language-cpp\">int add(int a, int b) {\n    return a + b;\n}\n\nint main() {\n    int result = add(3, 4);   // result is 7\n    std::cout &lt;&lt; result &lt;&lt; std::endl;\n    return 0;\n}<\/code><\/pre>\n<p>A function declaration has four parts: a <strong>return type<\/strong> (the type of value it produces, or <code>void<\/code> if it produces nothing), a <strong>name<\/strong>, a list of <strong>parameters<\/strong> (the inputs it accepts, each with its own type), and a <strong>body<\/strong> containing the code to run, typically ending in a <code>return<\/code> statement.<\/p>\n<p>Values are passed into functions in two important ways. <strong>Pass by value<\/strong> (the default) copies the argument &mdash; changes inside the function don't affect the original variable. <strong>Pass by reference<\/strong> gives the function direct access to the original variable, so changes inside the function are visible outside it too.<\/p>\n<pre><code class=\"language-cpp\">void doubleIt(int x) {        // pass by value: x is a COPY\n    x = x * 2;                 // only changes the local copy\n}\n\nvoid doubleItByRef(int&amp; x) {   // pass by reference: x IS the original\n    x = x * 2;                 // changes the caller&#x27;s variable\n}\n\nint main() {\n    int n = 5;\n    doubleIt(n);\n    std::cout &lt;&lt; n &lt;&lt; std::endl;       // still 5\n\n    doubleItByRef(n);\n    std::cout &lt;&lt; n &lt;&lt; std::endl;       // now 10\n    return 0;\n}<\/code><\/pre>\n<div class=\"callout callout-tip\"><span class=\"callout-label\">TIP<\/span><p>We'll go much deeper into what <code>&amp;<\/code> means, and why pass-by-reference works, in the Pointers &amp; References chapters coming up.<\/p><\/div>\n<p>Functions can also have <strong>default parameter values<\/strong>, used when the caller doesn't provide that argument, and can be <strong>overloaded<\/strong> &mdash; multiple functions sharing a name but differing in their parameter types or count, letting the compiler pick the right one based on how it's called.<\/p>\n<pre><code class=\"language-cpp\">double calculateArea(double radius, double pi = 3.14159) {\n    return pi * radius * radius;\n}\n\nint add(int a, int b) { return a + b; }\ndouble add(double a, double b) { return a + b; }  // overload<\/code><\/pre>"}, {"id": "arrays", "title": "Arrays", "category": "C++ Basics", "body": "<p>An <strong>array<\/strong> is a fixed-size collection of elements of the same type, stored contiguously (back-to-back) in memory. Because the elements sit right next to each other, the computer can compute the address of any element instantly from its <strong>index<\/strong>, giving arrays extremely fast, constant-time access to any position.<\/p>\n<pre><code class=\"language-cpp\">int scores[5] = {90, 85, 77, 92, 88};\n\nstd::cout &lt;&lt; scores[0] &lt;&lt; std::endl;  // 90 -- indexing starts at 0\nstd::cout &lt;&lt; scores[4] &lt;&lt; std::endl;  // 88 -- the last element\n\nscores[2] = 100;  // overwrite the third element<\/code><\/pre>\n<p>Array indices start at <code>0<\/code>, not <code>1<\/code>. An array of size 5 has valid indices <code>0<\/code> through <code>4<\/code>. Accessing an out-of-range index &mdash; like <code>scores[5]<\/code> on a 5-element array &mdash; is one of the most common and dangerous bugs in C++: the language does not automatically stop you, and it will silently read or write memory that doesn't belong to your array.<\/p>\n<div class=\"callout callout-warning\"><span class=\"callout-label\">WARNING<\/span><p>This is called an out-of-bounds access, and it's a major source of security vulnerabilities and crashes in real-world software. Unlike some languages, C++ trusts you not to do this &mdash; it does not check bounds for you at runtime by default.<\/p><\/div>\n<p>You can loop over an array using a standard <code>for<\/code> loop and the array's size, or using a <strong>range-based for loop<\/strong> (available since C++11), which is simpler and safer when you don't need the index:<\/p>\n<pre><code class=\"language-cpp\">int nums[4] = {2, 4, 6, 8};\n\nfor (int i = 0; i &lt; 4; i++) {\n    std::cout &lt;&lt; nums[i] &lt;&lt; &quot; &quot;;\n}\n\nfor (int n : nums) {          // range-based for loop\n    std::cout &lt;&lt; n &lt;&lt; &quot; &quot;;\n}<\/code><\/pre>\n<p>Raw arrays have a real limitation: their size is fixed at creation and can't grow. In modern C++, it's common to instead use <code>std::vector<\/code>, a dynamically resizable array from the standard library, for most everyday tasks:<\/p>\n<pre><code class=\"language-cpp\">#include &lt;vector&gt;\n\nstd::vector&lt;int&gt; scores = {90, 85, 77};\nscores.push_back(95);          // grows automatically -&gt; {90, 85, 77, 95}\nstd::cout &lt;&lt; scores.size();    // 4<\/code><\/pre>"}, {"id": "strings", "title": "Strings", "category": "C++ Basics", "body": "<p>A <strong>string<\/strong> is a sequence of characters &mdash; text. C++ gives you two ways to work with strings: the low-level, C-style <strong>character array<\/strong>, and the modern, much safer <code>std::string<\/code> class from the standard library.<\/p>\n<pre><code class=\"language-cpp\">#include &lt;string&gt;\n\nstd::string greeting = &quot;Hello&quot;;\nstd::string name = &quot;Ada&quot;;\nstd::string message = greeting + &quot;, &quot; + name + &quot;!&quot;;  // concatenation\n\nstd::cout &lt;&lt; message &lt;&lt; std::endl;      // Hello, Ada!\nstd::cout &lt;&lt; message.length() &lt;&lt; std::endl;   // 13<\/code><\/pre>\n<p><code>std::string<\/code> supports many useful operations out of the box:<\/p>\n<pre><code class=\"language-cpp\">std::string s = &quot;Hello, World!&quot;;\n\ns.length();              // 13 -- number of characters\ns[0];                    // &#x27;H&#x27; -- strings support indexing like arrays\ns.substr(7, 5);          // &quot;World&quot; -- 5 characters starting at index 7\ns.find(&quot;World&quot;);         // 7 -- index where &quot;World&quot; begins\ns.find(&quot;xyz&quot;);           // std::string::npos -- means &quot;not found&quot;\ns + &quot;!!!&quot;;                // &quot;Hello, World!!!!&quot;  -- concatenation<\/code><\/pre>\n<p>Under the hood, a string is really just an array of characters, and <code>std::string<\/code> is a class that manages that array for you &mdash; automatically resizing memory as needed, tracking the length, and providing safe methods instead of raw pointer manipulation. This is a preview of a very important idea we'll return to in the OOP section: wrapping raw, error-prone memory management inside a safe, convenient interface.<\/p>\n<div class=\"callout callout-tip\"><span class=\"callout-label\">TIP<\/span><p>Character literals use single quotes (<code>'A'<\/code>) and are of type <code>char<\/code>. String literals use double quotes (<code>&quot;A&quot;<\/code>) and are text. Mixing these up is a common beginner error.<\/p><\/div>"}, {"id": "pointers", "title": "Pointers & Addresses", "category": "Memory & Pointers", "body": "<p>Every variable lives somewhere in memory, at a specific address. A <strong>pointer<\/strong> is a variable whose value <em>is<\/em> a memory address &mdash; instead of holding data directly, it holds the location of data. Pointers are one of the ideas that makes C++ distinctive, and understanding them unlocks how memory, arrays, and object references really work under the hood in every language.<\/p>\n<pre><code class=\"language-cpp\">int age = 25;\nint* agePtr = &amp;age;   // agePtr holds the ADDRESS of age\n\nstd::cout &lt;&lt; age;      // 25          -- the value\nstd::cout &lt;&lt; &amp;age;      // 0x7ffee... -- the address (varies each run)\nstd::cout &lt;&lt; agePtr;   // 0x7ffee... -- same address, stored in agePtr\nstd::cout &lt;&lt; *agePtr;  // 25          -- &quot;dereference&quot;: follow the pointer to get the value<\/code><\/pre>\n<p>Two operators are central here. <code>&amp;<\/code> (the <strong>address-of<\/strong> operator) gives you the memory address of a variable. <code>*<\/code> (the <strong>dereference<\/strong> operator), when applied to a pointer, follows the address to retrieve or modify the value stored there.<\/p>\n<pre><code class=\"language-cpp\">int score = 10;\nint* p = &amp;score;\n\n*p = 99;                    // follow the pointer and change the value\nstd::cout &lt;&lt; score;         // 99 -- the original variable changed!<\/code><\/pre>\n<p>Why does this matter? Because it explains pass-by-reference from the Functions chapter: a reference parameter is essentially a pointer the compiler manages for you automatically. It also explains how arrays work internally &mdash; an array name effectively decays into a pointer to its first element. And it explains dynamic memory, which we cover next: without pointers, there'd be no way to refer to memory you request while the program is running.<\/p>\n<div class=\"callout callout-warning\"><span class=\"callout-label\">WARNING<\/span><p>A pointer that doesn't point anywhere valid is called a <strong>dangling<\/strong> or <strong>null<\/strong> pointer. Dereferencing one (<code>*p<\/code> when <code>p<\/code> is invalid) is undefined behavior &mdash; it might crash, might silently corrupt data, or might appear to work and fail later. Always initialize pointers, and set them to <code>nullptr<\/code> when they don't point to anything valid.<\/p><\/div>\n<pre><code class=\"language-cpp\">int* p = nullptr;    // explicitly points to nothing\n\nif (p != nullptr) {\n    std::cout &lt;&lt; *p;   // safe to dereference: p is checked first\n}<\/code><\/pre>"}, {"id": "references", "title": "References", "category": "Memory & Pointers", "body": "<p>A <strong>reference<\/strong> is an alias &mdash; another name for an existing variable. Once a reference is bound to a variable, using the reference is exactly like using the original variable; there's no separate dereference step like there is with pointers.<\/p>\n<pre><code class=\"language-cpp\">int score = 10;\nint&amp; scoreRef = score;   // scoreRef is now another name for score\n\nscoreRef = 99;\nstd::cout &lt;&lt; score;      // 99 -- changing the reference changed the original\n\nscore = 50;\nstd::cout &lt;&lt; scoreRef;   // 50 -- and vice versa, they refer to the same memory<\/code><\/pre>\n<p>References and pointers solve overlapping problems but differ in important ways. A reference must be initialized when it's declared and can never be reassigned to refer to something else afterward. A pointer can be declared without pointing to anything (or pointing to <code>nullptr<\/code>), and can be reassigned to point elsewhere at any time. Because of this, references are generally considered simpler and safer, and are strongly preferred for function parameters when you just need to avoid copying an argument or need to modify the caller's variable.<\/p>\n<pre><code class=\"language-cpp\">void increment(int&amp; value) {   // reference parameter: no copy made\n    value++;\n}\n\nint main() {\n    int n = 5;\n    increment(n);\n    std::cout &lt;&lt; n;   // 6 -- n was modified directly, no pointer syntax needed\n}<\/code><\/pre>\n<p>A related, very common pattern is passing a large object <strong>by constant reference<\/strong> &mdash; giving a function direct access to the original data (avoiding an expensive copy) while promising not to modify it:<\/p>\n<pre><code class=\"language-cpp\">void printReport(const std::string&amp; text) {\n    // text is NOT copied, and this function is not allowed to modify it\n    std::cout &lt;&lt; text &lt;&lt; std::endl;\n}<\/code><\/pre>\n<div class=\"callout callout-tip\"><span class=\"callout-label\">TIP<\/span><p>Rule of thumb: use a reference when you always need to refer to a valid, existing object. Use a pointer when the thing you're referring to might not exist (<code>nullptr<\/code>), might change over the pointer's lifetime, or is part of a dynamic data structure like a linked list.<\/p><\/div>"}, {"id": "dynamic-memory", "title": "Dynamic Memory & the Heap", "category": "Memory & Pointers", "body": "<p>So far, every variable we've created has had a size known at compile time, and its memory has been managed automatically &mdash; created when it comes into scope, destroyed when it goes out of scope. This region of automatically-managed memory is called the <strong>stack<\/strong>.<\/p>\n<p>But sometimes you don't know how much memory you'll need until the program is running &mdash; the size depends on user input, a file being read, or a network response. For this, C++ provides the <strong>heap<\/strong>: a large pool of memory you can request from and return to manually, at any time, in any order.<\/p>\n<pre><code class=\"language-cpp\">int* p = new int;      // request memory for one int on the heap\n*p = 42;                 // use it like any other int, via the pointer\nstd::cout &lt;&lt; *p;         // 42\n\ndelete p;                // return the memory to the system\np = nullptr;             // good practice: avoid a dangling pointer<\/code><\/pre>\n<p>The <code>new<\/code> keyword requests memory from the heap and returns a pointer to it. When you're done with that memory, <code>delete<\/code> returns it to the system so it can be reused. This pairing is the programmer's responsibility in C++ &mdash; the compiler does not do it automatically. Forgetting to <code>delete<\/code> memory you allocated is called a <strong>memory leak<\/strong>: the memory stays reserved for the rest of the program's life, even though nothing can use it anymore because you've lost the pointer to it.<\/p>\n<pre><code class=\"language-cpp\">int* arr = new int[10];   // an array of 10 ints on the heap\narr[0] = 1;\narr[9] = 100;\n\ndelete[] arr;              // note the [] -- required for array deletes<\/code><\/pre>\n<div class=\"callout callout-tip\"><span class=\"callout-label\">TIP<\/span><p>Modern C++ strongly encourages avoiding raw <code>new<\/code>/<code>delete<\/code> in everyday code, in favor of <strong>smart pointers<\/strong> (like <code>std::unique_ptr<\/code> and <code>std::shared_ptr<\/code>) that automatically delete their memory when it's no longer needed. They exist specifically to eliminate memory leaks and dangling pointers while keeping the flexibility of the heap. As a beginner, understanding raw <code>new<\/code>/<code>delete<\/code> first will make smart pointers make a lot more sense later.<\/p><\/div>\n<p>The stack vs. heap distinction matters for performance too: stack allocation is extremely fast (just moving a pointer) and automatic, while heap allocation is slower and manual, but far more flexible in size and lifetime. Choosing which to use is a recurring decision in performance-sensitive code.<\/p>"}, {"id": "structs-classes", "title": "Structs, Classes & Objects", "category": "Object-Oriented Programming", "body": "<p>So far, our data and the functions that operate on it have been separate. <strong>Object-oriented programming (OOP)<\/strong> bundles them together: data (called <strong>member variables<\/strong> or <strong>fields<\/strong>) and the functions that operate on that data (called <strong>member functions<\/strong> or <strong>methods<\/strong>) are grouped into a single unit called a <strong>class<\/strong>. An <strong>object<\/strong> is a specific instance of a class &mdash; a concrete thing built from that blueprint.<\/p>\n<p>C++ actually offers two nearly identical tools for this: <code>struct<\/code> and <code>class<\/code>. A <code>struct<\/code> is typically used for simple data groupings:<\/p>\n<pre><code class=\"language-cpp\">struct Point {\n    double x;\n    double y;\n};\n\nint main() {\n    Point p1;\n    p1.x = 3.0;\n    p1.y = 4.0;\n    std::cout &lt;&lt; p1.x &lt;&lt; &quot;, &quot; &lt;&lt; p1.y &lt;&lt; std::endl;   // 3, 4\n}<\/code><\/pre>\n<p>A <code>class<\/code> is the primary tool for full OOP, typically combining data with the behavior that operates on it:<\/p>\n<pre><code class=\"language-cpp\">class BankAccount {\npublic:\n    std::string owner;\n    double balance;\n\n    void deposit(double amount) {\n        balance += amount;\n    }\n\n    void withdraw(double amount) {\n        if (amount &lt;= balance) {\n            balance -= amount;\n        } else {\n            std::cout &lt;&lt; &quot;Insufficient funds.&quot; &lt;&lt; std::endl;\n        }\n    }\n};\n\nint main() {\n    BankAccount account;\n    account.owner = &quot;Ada&quot;;\n    account.balance = 100.0;\n\n    account.deposit(50.0);\n    std::cout &lt;&lt; account.balance &lt;&lt; std::endl;   // 150\n}<\/code><\/pre>\n<p>A special member function called a <strong>constructor<\/strong> runs automatically whenever an object is created, typically used to set up its initial state:<\/p>\n<pre><code class=\"language-cpp\">class BankAccount {\npublic:\n    std::string owner;\n    double balance;\n\n    BankAccount(std::string ownerName, double startingBalance) {\n        owner = ownerName;\n        balance = startingBalance;\n    }\n};\n\nint main() {\n    BankAccount account(&quot;Ada&quot;, 100.0);   // constructor runs automatically\n    std::cout &lt;&lt; account.owner;           // Ada\n}<\/code><\/pre>\n<div class=\"callout callout-tip\"><span class=\"callout-label\">TIP<\/span><p>The only default difference between <code>struct<\/code> and <code>class<\/code> in C++ is visibility: <code>struct<\/code> members are <code>public<\/code> by default, <code>class<\/code> members are <code>private<\/code> by default. We cover exactly what that means next.<\/p><\/div>"}, {"id": "encapsulation", "title": "Encapsulation & Access Control", "category": "Object-Oriented Programming", "body": "<p><strong>Encapsulation<\/strong> is the practice of hiding an object's internal details and exposing only a controlled, intentional interface for interacting with it. This is the &quot;abstraction&quot; idea from the very first chapter, applied concretely to classes: users of your class shouldn't need to know (or be able to mess with) its internal implementation.<\/p>\n<p>C++ gives you three access levels for class members:<\/p>\n<ul><li><code>public<\/code> &mdash; accessible from anywhere, including outside the class. This is the interface.<\/li><li><code>private<\/code> &mdash; accessible only from within the class's own member functions. This is the hidden implementation.<\/li><li><code>protected<\/code> &mdash; like <code>private<\/code>, but also accessible to derived classes (covered in the next chapter, on inheritance).<\/li><\/ul>\n<pre><code class=\"language-cpp\">class BankAccount {\nprivate:\n    double balance;   // hidden -- can&#x27;t be touched directly from outside\n\npublic:\n    BankAccount(double startingBalance) {\n        balance = startingBalance;\n    }\n\n    void deposit(double amount) {\n        if (amount &gt; 0) balance += amount;   // validated inside the class\n    }\n\n    double getBalance() const {              // controlled read access\n        return balance;\n    }\n};\n\nint main() {\n    BankAccount account(100.0);\n    // account.balance = -500;   // ERROR: balance is private, won&#x27;t compile\n    account.deposit(50.0);\n    std::cout &lt;&lt; account.getBalance();       // 150\n}<\/code><\/pre>\n<p>Why bother hiding <code>balance<\/code> behind a private field and public methods, instead of just making it public? Because it lets the class <strong>enforce its own rules<\/strong>. If <code>balance<\/code> were public, any code anywhere could set it to a negative number, bypassing any validation. By forcing all changes through <code>deposit()<\/code> and <code>withdraw()<\/code>, the class guarantees its own invariants stay true, no matter who uses it or how.<\/p>\n<p>Public methods that provide controlled read/write access to private data are conventionally called <strong>getters<\/strong> and <strong>setters<\/strong>:<\/p>\n<pre><code class=\"language-cpp\">class Person {\nprivate:\n    int age;\n\npublic:\n    int getAge() const { return age; }\n\n    void setAge(int newAge) {\n        if (newAge &gt;= 0 &amp;&amp; newAge &lt; 150) {   // validation lives here\n            age = newAge;\n        }\n    }\n};<\/code><\/pre>\n<div class=\"callout callout-tip\"><span class=\"callout-label\">TIP<\/span><p>This is one of the most important habits to build early: default to making fields private, and expose only the methods a user of your class actually needs. It's much easier to loosen restrictions later than to tighten them once other code depends on unrestricted access.<\/p><\/div>"}, {"id": "inheritance", "title": "Inheritance", "category": "Object-Oriented Programming", "body": "<p><strong>Inheritance<\/strong> lets one class (the <strong>derived<\/strong> or <strong>child<\/strong> class) reuse and extend the fields and methods of another class (the <strong>base<\/strong> or <strong>parent<\/strong> class). It models an &quot;is-a&quot; relationship: a <code>Dog<\/code> is an <code>Animal<\/code>, a <code>Circle<\/code> is a <code>Shape<\/code>, a <code>SavingsAccount<\/code> is a <code>BankAccount<\/code>.<\/p>\n<pre><code class=\"language-cpp\">class Animal {\nprotected:\n    std::string name;\n\npublic:\n    Animal(std::string n) : name(n) {}\n\n    void eat() {\n        std::cout &lt;&lt; name &lt;&lt; &quot; is eating.&quot; &lt;&lt; std::endl;\n    }\n\n    void sleep() {\n        std::cout &lt;&lt; name &lt;&lt; &quot; is sleeping.&quot; &lt;&lt; std::endl;\n    }\n};\n\nclass Dog : public Animal {\npublic:\n    Dog(std::string n) : Animal(n) {}   // calls the base class constructor\n\n    void bark() {\n        std::cout &lt;&lt; name &lt;&lt; &quot; says Woof!&quot; &lt;&lt; std::endl;\n    }\n};\n\nint main() {\n    Dog myDog(&quot;Rex&quot;);\n    myDog.eat();    // inherited from Animal -- &quot;Rex is eating.&quot;\n    myDog.bark();   // defined on Dog itself -- &quot;Rex says Woof!&quot;\n}<\/code><\/pre>\n<p><code>Dog<\/code> automatically gets everything <code>Animal<\/code> has &mdash; the <code>name<\/code> field and the <code>eat()<\/code>/<code>sleep()<\/code> methods &mdash; without rewriting any of it, and adds its own behavior, <code>bark()<\/code>, on top. Notice <code>name<\/code> is <code>protected<\/code>, not <code>private<\/code>: this makes it accessible to <code>Dog<\/code> (a derived class) while still hiding it from unrelated outside code.<\/p>\n<p>A derived class can also <strong>override<\/strong> a method it inherits, replacing the base class's version with its own. In C++, marking a base method <code>virtual<\/code> tells the compiler this method is designed to be overridden:<\/p>\n<pre><code class=\"language-cpp\">class Animal {\npublic:\n    virtual void makeSound() {\n        std::cout &lt;&lt; &quot;Some generic animal sound.&quot; &lt;&lt; std::endl;\n    }\n};\n\nclass Cat : public Animal {\npublic:\n    void makeSound() override {   // &quot;override&quot; keyword: intentional, checked by the compiler\n        std::cout &lt;&lt; &quot;Meow!&quot; &lt;&lt; std::endl;\n    }\n};<\/code><\/pre>\n<div class=\"callout callout-tip\"><span class=\"callout-label\">TIP<\/span><p>Inheritance should model a genuine 'is-a' relationship. If you find yourself inheriting purely to reuse a couple of convenient methods rather than because the relationship makes conceptual sense, a different tool (like composition &mdash; giving a class a field of another class's type) is usually a better fit.<\/p><\/div>"}, {"id": "polymorphism", "title": "Polymorphism", "category": "Object-Oriented Programming", "body": "<p><strong>Polymorphism<\/strong> &mdash; literally &quot;many forms&quot; &mdash; is the ability to treat objects of different derived classes through a single, common base class interface, with each object responding to the same call in its own way. It's the payoff of the <code>virtual<\/code>/<code>override<\/code> mechanism introduced in the last chapter.<\/p>\n<pre><code class=\"language-cpp\">class Shape {\npublic:\n    virtual double area() const {\n        return 0.0;\n    }\n};\n\nclass Circle : public Shape {\nprivate:\n    double radius;\npublic:\n    Circle(double r) : radius(r) {}\n    double area() const override {\n        return 3.14159 * radius * radius;\n    }\n};\n\nclass Rectangle : public Shape {\nprivate:\n    double width, height;\npublic:\n    Rectangle(double w, double h) : width(w), height(h) {}\n    double area() const override {\n        return width * height;\n    }\n};<\/code><\/pre>\n<p>Now here's the powerful part: we can write code that works with <em>any<\/em> shape, without knowing or caring which specific kind it is, as long as we go through pointers or references to the base class:<\/p>\n<pre><code class=\"language-cpp\">void printArea(const Shape&amp; shape) {\n    std::cout &lt;&lt; &quot;Area: &quot; &lt;&lt; shape.area() &lt;&lt; std::endl;\n}\n\nint main() {\n    Circle c(5.0);\n    Rectangle r(4.0, 6.0);\n\n    printArea(c);   // &quot;Area: 78.5397&quot; -- calls Circle&#x27;s area()\n    printArea(r);   // &quot;Area: 24&quot;      -- calls Rectangle&#x27;s area()\n}<\/code><\/pre>\n<p><code>printArea<\/code> was written once, against the general <code>Shape<\/code> interface, but it correctly calls each object's own specific version of <code>area()<\/code> at runtime. This is called <strong>dynamic dispatch<\/strong>: the decision of which actual function to run is made while the program is running, based on the real type of the object, not the type of the reference or pointer used to call it.<\/p>\n<p>This is enormously useful in real software: you can build a list of many different shapes (<code>std::vector&lt;Shape*&gt;<\/code>, storing pointers so each element can be its own concrete subtype) and loop over it calling <code>area()<\/code> on each, and the correct calculation happens automatically for every shape &mdash; no giant <code>if<\/code>/<code>switch<\/code> statement checking &quot;is this a circle? is this a rectangle?&quot; required.<\/p>\n<div class=\"callout callout-tip\"><span class=\"callout-label\">TIP<\/span><p>Together, encapsulation, inheritance, and polymorphism are often called the three pillars of OOP. They exist to make large systems easier to extend: adding a new shape later means writing one new class &mdash; every function already written against the <code>Shape<\/code> interface keeps working, unchanged.<\/p><\/div>"}, {"id": "recursion", "title": "Recursion", "category": "Algorithmic Thinking", "body": "<p>A <strong>recursive<\/strong> function is one that calls itself to solve a smaller instance of the same problem. Every correct recursive function needs two parts: a <strong>base case<\/strong> &mdash; a simple condition where the function stops calling itself and returns directly &mdash; and a <strong>recursive case<\/strong>, where it calls itself with a smaller or simpler input, moving toward the base case.<\/p>\n<pre><code class=\"language-cpp\">int factorial(int n) {\n    if (n &lt;= 1) {          // base case\n        return 1;\n    }\n    return n * factorial(n - 1);   // recursive case\n}\n\nint main() {\n    std::cout &lt;&lt; factorial(5);   // 5 * 4 * 3 * 2 * 1 = 120\n}<\/code><\/pre>\n<p>Tracing through <code>factorial(3)<\/code> helps make the mechanism concrete: <code>factorial(3)<\/code> calls <code>factorial(2)<\/code>, which calls <code>factorial(1)<\/code>, which hits the base case and returns <code>1<\/code> directly. Then each pending call finishes its own multiplication as the calls return: <code>factorial(2)<\/code> returns <code>2 * 1 = 2<\/code>, and <code>factorial(3)<\/code> returns <code>3 * 2 = 6<\/code>.<\/p>\n<p>Each function call &mdash; recursive or not &mdash; gets its own space on the <strong>call stack<\/strong>, holding its local variables and where to resume when it returns. Recursive calls stack up the same way: each level waits for the level below it to finish before it can complete its own calculation.<\/p>\n<div class=\"callout callout-warning\"><span class=\"callout-label\">WARNING<\/span><p>If a recursive function never reaches its base case &mdash; because of a bug, or an input that never shrinks toward it &mdash; it will keep calling itself until it exhausts the call stack, crashing with a 'stack overflow.' Always double check that your recursive case moves strictly closer to the base case.<\/p><\/div>\n<p>Recursion shines on problems that are naturally self-similar &mdash; where a problem's solution depends directly on the solution to a smaller version of itself. The classic teaching example is the Fibonacci sequence, where each number is the sum of the two before it:<\/p>\n<pre><code class=\"language-cpp\">int fibonacci(int n) {\n    if (n &lt;= 1) return n;                          // base case\n    return fibonacci(n - 1) + fibonacci(n - 2);    // recursive case\n}<\/code><\/pre>\n<p>Any recursive solution can also be rewritten using a loop instead (this is called converting recursion to <strong>iteration<\/strong>). Neither approach is universally better: recursion often maps much more directly and readably onto the structure of certain problems, especially ones involving trees or nested structures (which we'll see in the Data Structures section), while iteration avoids the memory overhead of maintaining a deep call stack.<\/p>"}, {"id": "big-o", "title": "Complexity Analysis & Big-O Notation", "category": "Algorithmic Thinking", "body": "<p>Once you can write correct code, the next question is: how <em>good<\/em> is it? Specifically, how does its running time (or memory use) grow as the size of its input grows? <strong>Big-O notation<\/strong> is the standard language computer scientists use to describe this growth, focusing on how an algorithm scales rather than its exact speed on any one machine.<\/p>\n<p>Big-O describes the <strong>worst-case growth rate<\/strong> of an algorithm as a function of input size, conventionally called <code>n<\/code>, ignoring constant factors and lower-order terms &mdash; because what matters most as <code>n<\/code> gets very large is the dominant term.<\/p>\n<p>Some of the most common complexity classes, from fastest-growing cost to slowest:<\/p>\n<ul><li><code>O(1)<\/code> &mdash; <strong>constant time.<\/strong> The operation takes the same time regardless of input size. Example: accessing an array element by index.<\/li><li><code>O(log n)<\/code> &mdash; <strong>logarithmic time.<\/strong> The work needed grows very slowly as input grows &mdash; typically because each step eliminates a large fraction of the remaining possibilities. Example: binary search.<\/li><li><code>O(n)<\/code> &mdash; <strong>linear time.<\/strong> Work grows directly in proportion to input size. Example: scanning every element of an array once.<\/li><li><code>O(n log n)<\/code> &mdash; <strong>linearithmic time.<\/strong> Common in efficient sorting algorithms.<\/li><li><code>O(n&sup2;)<\/code> &mdash; <strong>quadratic time.<\/strong> Common with nested loops over the same input. Example: comparing every pair of elements in a list.<\/li><li><code>O(2&#8319;)<\/code> &mdash; <strong>exponential time.<\/strong> Work doubles with every additional input element. Often seen in naive recursive solutions, like the Fibonacci example from the previous chapter without optimization.<\/li><\/ul>\n<pre><code class=\"language-cpp\">// O(1): constant time\nint getFirst(std::vector&lt;int&gt;&amp; v) {\n    return v[0];\n}\n\n// O(n): linear time -- one loop over the input\nint sum(std::vector&lt;int&gt;&amp; v) {\n    int total = 0;\n    for (int x : v) total += x;\n    return total;\n}\n\n// O(n^2): quadratic time -- nested loop over the same input\nbool hasDuplicates(std::vector&lt;int&gt;&amp; v) {\n    for (int i = 0; i &lt; v.size(); i++) {\n        for (int j = i + 1; j &lt; v.size(); j++) {\n            if (v[i] == v[j]) return true;\n        }\n    }\n    return false;\n}<\/code><\/pre>\n<div class=\"callout callout-tip\"><span class=\"callout-label\">TIP<\/span><p>Big-O ignores constants: an algorithm that does exactly <code>3n<\/code> operations and one that does exactly <code>n<\/code> operations are both described as <code>O(n)<\/code>. This is deliberate &mdash; Big-O describes how cost <em>scales<\/em>, not the exact runtime on a specific machine. For large enough inputs, an <code>O(n)<\/code> algorithm will always eventually outperform an <code>O(n&sup2;)<\/code> one, no matter the constants involved.<\/p><\/div>\n<p>This is not an academic exercise. An <code>O(n&sup2;)<\/code> algorithm that feels instant on 100 items can take minutes or hours on 10 million items, while an <code>O(n log n)<\/code> algorithm handles both comfortably. Every data structure and algorithm in the rest of this tutorial will be discussed partly in terms of its Big-O complexity, because that's how you'll evaluate which one to use.<\/p>"}, {"id": "linked-lists", "title": "Linked Lists", "category": "Data Structures", "body": "<p>An array stores elements contiguously, which makes indexing fast but makes inserting or removing an element from the middle expensive &mdash; every element after it has to shift. A <strong>linked list<\/strong> takes a different approach: instead of one contiguous block, it's a chain of individually allocated <strong>nodes<\/strong>, each holding a value and a pointer to the next node.<\/p>\n<pre><code class=\"language-cpp\">struct Node {\n    int value;\n    Node* next;\n};\n\nint main() {\n    // manually building a list: 10 -&gt; 20 -&gt; 30 -&gt; nullptr\n    Node* third = new Node{30, nullptr};\n    Node* second = new Node{20, third};\n    Node* first = new Node{10, second};\n\n    Node* current = first;\n    while (current != nullptr) {\n        std::cout &lt;&lt; current-&gt;value &lt;&lt; &quot; &quot;;\n        current = current-&gt;next;\n    }\n    // prints: 10 20 30\n}<\/code><\/pre>\n<p>The <code>-&gt;<\/code> operator is shorthand for dereferencing a pointer to an object and accessing one of its members in one step: <code>current-&gt;value<\/code> means <code>(*current).value<\/code>. It's used constantly when working with pointers to structs and classes.<\/p>\n<p>Because nodes aren't contiguous, inserting a new node just means adjusting a couple of pointers &mdash; no shifting required, which makes insertion and removal at a known position <code>O(1)<\/code>, versus <code>O(n)<\/code> for an array. The tradeoff is that you lose fast random access: to reach the 500th node, you must walk the chain from the start, one pointer at a time, making indexed access <code>O(n)<\/code> instead of an array's <code>O(1)<\/code>.<\/p>\n<pre><code class=\"language-cpp\">// inserting a new node with value 15 right after &#x27;first&#x27;\nNode* newNode = new Node{15, first-&gt;next};\nfirst-&gt;next = newNode;\n// list is now: 10 -&gt; 15 -&gt; 20 -&gt; 30<\/code><\/pre>\n<p>The version above is a <strong>singly linked list<\/strong> &mdash; each node points only forward. A <strong>doubly linked list<\/strong> adds a <code>prev<\/code> pointer to each node too, allowing traversal in both directions at the cost of extra memory per node.<\/p>\n<div class=\"callout callout-tip\"><span class=\"callout-label\">TIP<\/span><p>Linked lists are the conceptual foundation for many other structures &mdash; stacks, queues, and even some tree and graph implementations reuse this 'node with pointers' idea. In practice, C++'s standard library provides <code>std::list<\/code> (doubly linked) and <code>std::forward_list<\/code> (singly linked) so you rarely hand-build one, but understanding the mechanics matters far more than the syntax.<\/p><\/div>"}, {"id": "stacks-queues", "title": "Stacks & Queues", "category": "Data Structures", "body": "<p>Stacks and queues are both restricted-access collections &mdash; unlike an array, you can't grab any arbitrary element. That restriction is exactly what makes them useful: they enforce a specific order of operations that matches many real-world problems.<\/p>\n<p>A <strong>stack<\/strong> follows <strong>LIFO<\/strong> order: Last In, First Out. Think of a stack of plates &mdash; you can only add or remove from the top. The core operations are <code>push<\/code> (add to the top) and <code>pop<\/code> (remove from the top).<\/p>\n<pre><code class=\"language-cpp\">#include &lt;stack&gt;\n\nstd::stack&lt;int&gt; s;\ns.push(1);\ns.push(2);\ns.push(3);          // stack, top to bottom: 3, 2, 1\n\nstd::cout &lt;&lt; s.top();  // 3 -- peek at the top without removing it\ns.pop();                // removes 3\nstd::cout &lt;&lt; s.top();  // 2<\/code><\/pre>\n<p>Stacks show up constantly: the call stack that manages recursive function calls (from the Recursion chapter) is a stack. The undo feature in a text editor is a stack. Checking whether parentheses in an expression are balanced is a classic stack problem &mdash; push every opening bracket, and pop when you see a matching closing bracket.<\/p>\n<p>A <strong>queue<\/strong> follows <strong>FIFO<\/strong> order: First In, First Out. Think of a line at a store &mdash; whoever arrived first is served first. The core operations are <code>push<\/code> (add to the back) and <code>pop<\/code> (remove from the front).<\/p>\n<pre><code class=\"language-cpp\">#include &lt;queue&gt;\n\nstd::queue&lt;int&gt; q;\nq.push(1);\nq.push(2);\nq.push(3);           // queue, front to back: 1, 2, 3\n\nstd::cout &lt;&lt; q.front();  // 1 -- the next item to come out\nq.pop();                  // removes 1\nstd::cout &lt;&lt; q.front();  // 2<\/code><\/pre>\n<p>Queues model any first-come-first-served process: tasks waiting to be printed, requests waiting to be handled by a server, or breadth-first traversal of a tree or graph, which we'll see in the upcoming chapters. Both stacks and queues can be implemented on top of either an array or a linked list &mdash; the choice of underlying structure is an implementation detail hidden behind the stack or queue's interface, a nice real-world example of encapsulation.<\/p>"}, {"id": "trees", "title": "Trees & Binary Search Trees", "category": "Data Structures", "body": "<p>A <strong>tree<\/strong> is a hierarchical structure made of nodes, where each node has a value and links to zero or more <strong>child<\/strong> nodes. One node, the <strong>root<\/strong>, has no parent; every other node has exactly one parent. Nodes with no children are called <strong>leaves<\/strong>. Trees model naturally hierarchical data: file systems, organization charts, HTML documents, and decision processes.<\/p>\n<p>A <strong>binary tree<\/strong> restricts each node to at most two children, conventionally called <code>left<\/code> and <code>right<\/code>:<\/p>\n<pre><code class=\"language-cpp\">struct TreeNode {\n    int value;\n    TreeNode* left;\n    TreeNode* right;\n\n    TreeNode(int v) : value(v), left(nullptr), right(nullptr) {}\n};<\/code><\/pre>\n<p>A <strong>binary search tree (BST)<\/strong> is a binary tree with one crucial ordering rule: for every node, every value in its left subtree is smaller, and every value in its right subtree is larger. This ordering is what makes BSTs powerful &mdash; it turns searching into the same &quot;eliminate half the possibilities&quot; idea as binary search, giving average-case <code>O(log n)<\/code> search, insert, and delete.<\/p>\n<pre><code class=\"language-cpp\">TreeNode* insert(TreeNode* node, int value) {\n    if (node == nullptr) {\n        return new TreeNode(value);   // found the spot -- create a new leaf\n    }\n    if (value &lt; node-&gt;value) {\n        node-&gt;left = insert(node-&gt;left, value);\n    } else {\n        node-&gt;right = insert(node-&gt;right, value);\n    }\n    return node;\n}\n\nbool search(TreeNode* node, int target) {\n    if (node == nullptr) return false;          // not found\n    if (node-&gt;value == target) return true;      // found it\n    if (target &lt; node-&gt;value) return search(node-&gt;left, target);\n    return search(node-&gt;right, target);\n}<\/code><\/pre>\n<p>Notice both functions are naturally recursive: a tree is, structurally, made of smaller trees (a node's left and right subtrees are themselves valid trees), which is exactly the kind of self-similar structure recursion is built for.<\/p>\n<p>Visiting every node in a tree in a defined order is called a <strong>traversal<\/strong>. The three common depth-first orders for a BST are: <strong>in-order<\/strong> (left, then node, then right &mdash; visits values in sorted order for a BST), <strong>pre-order<\/strong> (node, then left, then right), and <strong>post-order<\/strong> (left, then right, then node).<\/p>\n<div class=\"callout callout-warning\"><span class=\"callout-label\">WARNING<\/span><p>A BST's <code>O(log n)<\/code> performance assumes the tree is reasonably balanced &mdash; roughly the same depth on both sides. Insert sorted data into a naive BST (1, 2, 3, 4, 5...) and it degenerates into a straight line, effectively becoming a linked list with <code>O(n)<\/code> operations. Self-balancing trees (like red-black trees or AVL trees) solve this by automatically restructuring themselves to stay balanced, but the details are beyond this introduction.<\/p><\/div>"}, {"id": "hash-tables", "title": "Hash Tables", "category": "Data Structures", "body": "<p>A <strong>hash table<\/strong> (called <code>std::unordered_map<\/code> in C++) stores key-value pairs and offers average-case <code>O(1)<\/code> &mdash; constant time &mdash; insertion, lookup, and deletion, regardless of how many items it holds. This is a dramatic improvement over scanning a list (<code>O(n)<\/code>) or even searching a balanced tree (<code>O(log n)<\/code>), and it's one of the most heavily used data structures in real-world software.<\/p>\n<p>The mechanism behind this speed is a <strong>hash function<\/strong>: a function that takes a key and deterministically computes a number (a <strong>hash code<\/strong>) from it, which is then used to decide which &quot;bucket&quot; (a slot, typically within an underlying array) that key-value pair belongs in. To look up a key later, you run it through the same hash function, jump straight to that bucket, and check what's there &mdash; no scanning required.<\/p>\n<pre><code class=\"language-cpp\">#include &lt;unordered_map&gt;\n\nstd::unordered_map&lt;std::string, int&gt; ages;\n\nages[&quot;Ada&quot;] = 30;\nages[&quot;Grace&quot;] = 45;\nages[&quot;Alan&quot;] = 41;\n\nstd::cout &lt;&lt; ages[&quot;Ada&quot;];          // 30 -- direct lookup by key\n\nif (ages.find(&quot;Grace&quot;) != ages.end()) {\n    std::cout &lt;&lt; &quot;Grace is in the map.&quot; &lt;&lt; std::endl;\n}\n\nages.erase(&quot;Alan&quot;);                // remove a key-value pair<\/code><\/pre>\n<p>Two different keys can occasionally produce the same hash code and land in the same bucket &mdash; this is called a <strong>collision<\/strong>. Hash tables handle collisions internally (commonly by storing a small list of entries per bucket), and a well-designed hash function keeps collisions rare enough that average performance stays close to <code>O(1)<\/code>. You generally don't need to think about collisions when using a hash table &mdash; that's the whole point of the abstraction &mdash; but it's worth knowing they're the reason worst-case performance for a hash table is technically <code>O(n)<\/code>, even though that's rare in practice.<\/p>\n<div class=\"callout callout-tip\"><span class=\"callout-label\">TIP<\/span><p>Hash tables trade away ordering: iterating over a hash table does not visit entries in any predictable order (insertion order, sorted order, or otherwise). If you need order, a tree-based structure like <code>std::map<\/code> (which keeps keys sorted, at <code>O(log n)<\/code> operations) is usually the better choice.<\/p><\/div>\n<p>Hash tables (and their cousin, <strong>hash sets<\/strong>, which store unique keys with no associated value &mdash; <code>std::unordered_set<\/code> in C++) are the go-to tool whenever you need fast lookups: checking whether an item has been seen before, counting frequencies, caching results, or implementing a dictionary in the literal sense &mdash; mapping words to definitions.<\/p>"}, {"id": "graphs", "title": "Graphs", "category": "Data Structures", "body": "<p>A <strong>graph<\/strong> generalizes trees even further: a collection of <strong>vertices<\/strong> (also called nodes) connected by <strong>edges<\/strong>, without the restriction that each node has exactly one parent. Graphs can represent almost any network of relationships: social networks (people connected by friendships), road maps (intersections connected by roads), the web (pages connected by links), or dependencies between software packages.<\/p>\n<p>Edges can be <strong>directed<\/strong> (a one-way relationship, like &quot;follows&quot; on social media, drawn as an arrow) or <strong>undirected<\/strong> (a mutual relationship, like &quot;is friends with&quot;, drawn as a plain line). Edges can also be <strong>weighted<\/strong>, carrying a cost or distance &mdash; useful for representing things like the mileage between cities on a map.<\/p>\n<p>The most common way to represent a graph in code is an <strong>adjacency list<\/strong>: a map from each vertex to a list of the vertices it connects to.<\/p>\n<pre><code class=\"language-cpp\">#include &lt;unordered_map&gt;\n#include &lt;vector&gt;\n\nstd::unordered_map&lt;char, std::vector&lt;char&gt;&gt; graph;\n\ngraph[&#x27;A&#x27;] = {&#x27;B&#x27;, &#x27;C&#x27;};\ngraph[&#x27;B&#x27;] = {&#x27;A&#x27;, &#x27;D&#x27;};\ngraph[&#x27;C&#x27;] = {&#x27;A&#x27;};\ngraph[&#x27;D&#x27;] = {&#x27;B&#x27;};\n// A connects to B and C; B connects to A and D; and so on.<\/code><\/pre>\n<p>Two fundamental algorithms visit every reachable node in a graph, each useful for different questions. <strong>Breadth-first search (BFS)<\/strong> explores outward layer by layer &mdash; all neighbors first, then all of their neighbors &mdash; using a queue, and is the natural choice for finding the <em>shortest<\/em> path in an unweighted graph.<\/p>\n<pre><code class=\"language-cpp\">#include &lt;queue&gt;\n#include &lt;unordered_set&gt;\n\nvoid bfs(std::unordered_map&lt;char, std::vector&lt;char&gt;&gt;&amp; graph, char start) {\n    std::queue&lt;char&gt; toVisit;\n    std::unordered_set&lt;char&gt; visited;\n\n    toVisit.push(start);\n    visited.insert(start);\n\n    while (!toVisit.empty()) {\n        char current = toVisit.front();\n        toVisit.pop();\n        std::cout &lt;&lt; current &lt;&lt; &quot; &quot;;\n\n        for (char neighbor : graph[current]) {\n            if (visited.find(neighbor) == visited.end()) {\n                visited.insert(neighbor);\n                toVisit.push(neighbor);\n            }\n        }\n    }\n}<\/code><\/pre>\n<p><strong>Depth-first search (DFS)<\/strong> instead dives as deep as possible down one path before backtracking, typically implemented with a stack (explicitly, or implicitly via recursion using the call stack). DFS is a natural fit for tasks like detecting cycles or exploring every possible path.<\/p>\n<pre><code class=\"language-cpp\">void dfs(std::unordered_map&lt;char, std::vector&lt;char&gt;&gt;&amp; graph,\n         char current, std::unordered_set&lt;char&gt;&amp; visited) {\n    if (visited.count(current)) return;\n    visited.insert(current);\n    std::cout &lt;&lt; current &lt;&lt; &quot; &quot;;\n\n    for (char neighbor : graph[current]) {\n        dfs(graph, neighbor, visited);\n    }\n}<\/code><\/pre>\n<div class=\"callout callout-tip\"><span class=\"callout-label\">TIP<\/span><p>Both BFS and DFS run in <code>O(V + E)<\/code> time, where <code>V<\/code> is the number of vertices and <code>E<\/code> is the number of edges &mdash; each vertex and edge is visited a constant number of times. Trees, from the previous chapter, are actually a special case of graphs: connected, with no cycles, and exactly one path between any two nodes.<\/p><\/div>"}, {"id": "sorting", "title": "Sorting Algorithms", "category": "Algorithms", "body": "<p>Sorting &mdash; arranging elements into order &mdash; is one of the most studied problems in computer science, both because it's genuinely useful everywhere and because it's an excellent lens for comparing algorithmic tradeoffs. We'll look at a simple, intuitive sort first, then a much faster one used in practice.<\/p>\n<p><strong>Bubble sort<\/strong> repeatedly steps through the list, comparing adjacent elements and swapping them if they're in the wrong order, until no swaps are needed. It's easy to understand but slow &mdash; <code>O(n&sup2;)<\/code> in the average and worst case.<\/p>\n<pre><code class=\"language-cpp\">void bubbleSort(std::vector&lt;int&gt;&amp; arr) {\n    int n = arr.size();\n    for (int i = 0; i &lt; n - 1; i++) {\n        for (int j = 0; j &lt; n - i - 1; j++) {\n            if (arr[j] &gt; arr[j + 1]) {\n                std::swap(arr[j], arr[j + 1]);\n            }\n        }\n    }\n}<\/code><\/pre>\n<p><strong>Merge sort<\/strong> takes a fundamentally different approach: <strong>divide and conquer<\/strong>. It splits the list in half recursively until each piece has just one element (trivially sorted), then merges pairs of sorted pieces back together in order. This gives a much better <code>O(n log n)<\/code> guarantee, in the average <em>and<\/em> worst case.<\/p>\n<pre><code class=\"language-cpp\">void merge(std::vector&lt;int&gt;&amp; arr, int left, int mid, int right) {\n    std::vector&lt;int&gt; temp;\n    int i = left, j = mid + 1;\n\n    while (i &lt;= mid &amp;&amp; j &lt;= right) {\n        if (arr[i] &lt;= arr[j]) temp.push_back(arr[i++]);\n        else temp.push_back(arr[j++]);\n    }\n    while (i &lt;= mid) temp.push_back(arr[i++]);\n    while (j &lt;= right) temp.push_back(arr[j++]);\n\n    for (int k = 0; k &lt; temp.size(); k++) arr[left + k] = temp[k];\n}\n\nvoid mergeSort(std::vector&lt;int&gt;&amp; arr, int left, int right) {\n    if (left &gt;= right) return;               // base case: 0 or 1 elements\n    int mid = left + (right - left) / 2;\n    mergeSort(arr, left, mid);                // sort left half\n    mergeSort(arr, mid + 1, right);           // sort right half\n    merge(arr, left, mid, right);             // merge the two sorted halves\n}<\/code><\/pre>\n<p>The tradeoff: merge sort's speed comes at the cost of extra memory (<code>O(n)<\/code> auxiliary space for the temporary arrays used while merging), while bubble sort needs no extra memory but is impractically slow for anything but small or nearly-sorted lists.<\/p>\n<div class=\"callout callout-tip\"><span class=\"callout-label\">TIP<\/span><p>In real C++ code, you'll almost always reach for the standard library's built-in <code>std::sort<\/code> (an efficient, highly optimized <code>O(n log n)<\/code> sort) rather than hand-writing one. Understanding how merge sort works, though, is what lets you reason about performance, understand time complexity discussions, and recognize the divide-and-conquer pattern when it shows up in other problems.<\/p><\/div>\n<pre><code class=\"language-cpp\">#include &lt;algorithm&gt;\n\nstd::vector&lt;int&gt; nums = {5, 2, 8, 1, 9};\nstd::sort(nums.begin(), nums.end());   // {1, 2, 5, 8, 9}<\/code><\/pre>"}, {"id": "searching", "title": "Searching Algorithms", "category": "Algorithms", "body": "<p><strong>Linear search<\/strong> checks every element in order until it finds a match or reaches the end. It requires no assumptions about the data &mdash; it works on any list, sorted or not &mdash; but is <code>O(n)<\/code>: in the worst case, you check every single element.<\/p>\n<pre><code class=\"language-cpp\">int linearSearch(std::vector&lt;int&gt;&amp; arr, int target) {\n    for (int i = 0; i &lt; arr.size(); i++) {\n        if (arr[i] == target) return i;   // found it, return the index\n    }\n    return -1;                            // not found\n}<\/code><\/pre>\n<p><strong>Binary search<\/strong> is dramatically faster, but requires one precondition: the data must already be sorted. It repeatedly checks the middle element and eliminates half of the remaining search space based on whether the target is smaller or larger, giving <code>O(log n)<\/code> performance &mdash; searching a sorted list of a billion elements takes at most about 30 comparisons.<\/p>\n<pre><code class=\"language-cpp\">int binarySearch(std::vector&lt;int&gt;&amp; arr, int target) {\n    int low = 0, high = arr.size() - 1;\n\n    while (low &lt;= high) {\n        int mid = low + (high - low) / 2;\n\n        if (arr[mid] == target) {\n            return mid;                    // found it\n        } else if (arr[mid] &lt; target) {\n            low = mid + 1;                 // target is in the right half\n        } else {\n            high = mid - 1;                // target is in the left half\n        }\n    }\n    return -1;                             // not found\n}<\/code><\/pre>\n<p>This is a direct, concrete payoff of the Big-O chapter: on a sorted list of a million elements, linear search might check up to a million elements in the worst case, while binary search needs at most about 20. The precondition &mdash; sortedness &mdash; is exactly why the sorting algorithms from the previous chapter matter: it's often worth paying the one-time <code>O(n log n)<\/code> cost to sort a list if you're going to search it many times afterward.<\/p>\n<div class=\"callout callout-tip\"><span class=\"callout-label\">TIP<\/span><p>Binary search is also the same underlying idea behind a binary search tree's <code>O(log n)<\/code> lookup from the Trees chapter &mdash; both work by repeatedly eliminating half of the remaining possibilities. Recognizing this 'halving' pattern is one of the most transferable skills in algorithm design.<\/p><\/div>"}, {"id": "algo-design", "title": "Greedy, Divide & Conquer, and Dynamic Programming", "category": "Algorithms", "body": "<p>Beyond specific algorithms, it's worth knowing a few general <strong>problem-solving strategies<\/strong> that recur constantly, since recognizing which strategy fits a new problem is often the hardest part of solving it.<\/p>\n<p><strong>Divide and conquer<\/strong> &mdash; already seen in merge sort and binary search &mdash; breaks a problem into smaller subproblems of the same type, solves each independently (often recursively), and combines their results. It's a strong fit when a problem naturally splits into independent pieces.<\/p>\n<p>A <strong>greedy algorithm<\/strong> builds a solution step by step, at each step making whatever choice looks best <em>right now<\/em>, without reconsidering earlier choices. Greedy algorithms are simple and fast, but only produce a truly optimal answer for certain problems &mdash; using one on a problem it doesn't fit can silently give you a wrong (suboptimal) answer.<\/p>\n<pre><code class=\"language-cpp\">// Greedy coin change: assumes standard denominations (works correctly here,\n// but greedy does NOT work correctly for all possible coin systems!)\nint minCoins(std::vector&lt;int&gt;&amp; coins, int amount) {\n    std::sort(coins.rbegin(), coins.rend());   // largest coins first\n    int count = 0;\n\n    for (int coin : coins) {\n        while (amount &gt;= coin) {\n            amount -= coin;\n            count++;\n        }\n    }\n    return count;\n}\n// minCoins({25, 10, 5, 1}, 41) -&gt; uses 25 + 10 + 5 + 1 = 4 coins<\/code><\/pre>\n<p><strong>Dynamic programming (DP)<\/strong> applies when a problem has overlapping subproblems &mdash; the same smaller calculation gets repeated many times inside a naive recursive solution. DP stores (&quot;memoizes&quot;) the result of each subproblem the first time it's computed, so later requests for the same subproblem are instant lookups instead of repeated work.<\/p>\n<p>Recall the naive recursive Fibonacci from the Recursion chapter: computing <code>fibonacci(5)<\/code> recomputes <code>fibonacci(3)<\/code> and <code>fibonacci(2)<\/code> multiple separate times, and this waste compounds exponentially &mdash; <code>O(2&#8319;)<\/code> overall. Storing each result the first time we compute it fixes this entirely:<\/p>\n<pre><code class=\"language-cpp\">#include &lt;unordered_map&gt;\n\nstd::unordered_map&lt;int, long long&gt; memo;\n\nlong long fibonacci(int n) {\n    if (n &lt;= 1) return n;\n    if (memo.count(n)) return memo[n];        // already computed -- reuse it!\n\n    long long result = fibonacci(n - 1) + fibonacci(n - 2);\n    memo[n] = result;                          // store for next time\n    return result;\n}<\/code><\/pre>\n<p>This single change &mdash; caching subproblem results &mdash; brings Fibonacci down from exponential <code>O(2&#8319;)<\/code> to linear <code>O(n)<\/code>, without altering the overall logic at all. This general technique, called <strong>memoization<\/strong>, is one of the highest-leverage ideas in this entire tutorial: recognizing repeated work and eliminating it.<\/p>\n<div class=\"callout callout-tip\"><span class=\"callout-label\">TIP<\/span><p>There's no single strategy that solves every problem &mdash; part of developing algorithmic skill is building the judgment to recognize which pattern (divide and conquer, greedy, dynamic programming, or something else entirely) fits the problem in front of you. That judgment mostly comes from practice: solving many varied problems over time.<\/p><\/div>"}, {"id": "concurrency", "title": "Intro to Concurrency", "category": "Beyond the Basics", "body": "<p>Every program we've discussed so far runs one instruction at a time, in a single, predictable sequence &mdash; this is called <strong>sequential<\/strong> execution. <strong>Concurrency<\/strong> is the broader idea of a program making progress on more than one task in an overlapping timeframe, and <strong>parallelism<\/strong> specifically means multiple tasks literally running at the same physical instant, typically on multiple CPU cores.<\/p>\n<p>A <strong>thread<\/strong> is an independent sequence of execution within a program. A program can spawn multiple threads that run concurrently, letting it, for example, keep a user interface responsive while a large calculation runs in the background, or handle many network requests without one slow request blocking all the others.<\/p>\n<pre><code class=\"language-cpp\">#include &lt;thread&gt;\n#include &lt;iostream&gt;\n\nvoid printNumbers() {\n    for (int i = 0; i &lt; 5; i++) std::cout &lt;&lt; i &lt;&lt; &quot; &quot;;\n}\n\nint main() {\n    std::thread t(printNumbers);   // starts running concurrently\n    t.join();                       // wait for the thread to finish\n    std::cout &lt;&lt; std::endl &lt;&lt; &quot;Done!&quot; &lt;&lt; std::endl;\n}<\/code><\/pre>\n<p>Concurrency introduces a genuinely new category of bug that doesn't exist in sequential code: a <strong>race condition<\/strong>, where the outcome of a program depends on the unpredictable timing of multiple threads accessing the same data. If two threads both read, modify, and write the same variable without coordination, updates can be silently lost.<\/p>\n<pre><code class=\"language-cpp\">int counter = 0;\n\nvoid increment() {\n    for (int i = 0; i &lt; 100000; i++) {\n        counter++;   // NOT safe if multiple threads run this concurrently!\n    }\n}\n// two threads both running increment() concurrently will very likely\n// produce a final counter LESS than 200000, because &quot;counter++&quot; is not\n// a single atomic step -- it reads, adds one, then writes back, and two\n// threads can interleave those steps and stomp on each other&#x27;s update.<\/code><\/pre>\n<p>The standard tool for preventing this is a <strong>mutex<\/strong> (mutual exclusion lock): a mechanism that ensures only one thread can execute a particular section of code (a &quot;critical section&quot;) at a time, forcing other threads to wait their turn.<\/p>\n<pre><code class=\"language-cpp\">#include &lt;mutex&gt;\n\nint counter = 0;\nstd::mutex counterMutex;\n\nvoid safeIncrement() {\n    for (int i = 0; i &lt; 100000; i++) {\n        std::lock_guard&lt;std::mutex&gt; lock(counterMutex);   // acquired here\n        counter++;\n    }   // automatically released when &#x27;lock&#x27; goes out of scope\n}<\/code><\/pre>\n<div class=\"callout callout-warning\"><span class=\"callout-label\">WARNING<\/span><p>Concurrency is a deep topic on its own, but the core idea to internalize now is this: any time multiple threads can touch the same piece of shared, mutable data, you need an explicit strategy to coordinate them, or you risk subtle, hard-to-reproduce bugs that may only appear under specific timing conditions.<\/p><\/div>"}, {"id": "error-handling", "title": "Error Handling & File I/O", "category": "Beyond the Basics", "body": "<p>Real programs deal with the world outside their own logic: files that might not exist, user input that might be malformed, network connections that might fail. <strong>Error handling<\/strong> is how a program detects these situations and responds gracefully instead of crashing or silently producing wrong results.<\/p>\n<p>C++'s primary mechanism for this is <strong>exceptions<\/strong>. Code that might fail is wrapped in a <code>try<\/code> block; if something goes wrong, it <code>throw<\/code>s an exception, which transfers control to a matching <code>catch<\/code> block instead of continuing normally.<\/p>\n<pre><code class=\"language-cpp\">#include &lt;stdexcept&gt;\n\ndouble divide(double a, double b) {\n    if (b == 0) {\n        throw std::runtime_error(&quot;Cannot divide by zero&quot;);\n    }\n    return a / b;\n}\n\nint main() {\n    try {\n        double result = divide(10, 0);\n        std::cout &lt;&lt; result &lt;&lt; std::endl;   // never reached\n    } catch (const std::runtime_error&amp; e) {\n        std::cout &lt;&lt; &quot;Error: &quot; &lt;&lt; e.what() &lt;&lt; std::endl;\n    }\n    std::cout &lt;&lt; &quot;Program continues normally.&quot; &lt;&lt; std::endl;\n}<\/code><\/pre>\n<p>This separates the &quot;happy path&quot; logic from error-handling logic, and &mdash; crucially &mdash; an exception thrown deep inside several nested function calls can be caught far up the call stack, without every intermediate function needing to explicitly check for and pass along an error.<\/p>\n<p><strong>File I/O<\/strong> (input/output) follows a similar pattern of things that can fail. Reading from and writing to files uses stream objects, similar in spirit to <code>std::cout<\/code>:<\/p>\n<pre><code class=\"language-cpp\">#include &lt;fstream&gt;\n#include &lt;string&gt;\n\nint main() {\n    std::ofstream outFile(&quot;notes.txt&quot;);   // open for writing\n    if (outFile.is_open()) {\n        outFile &lt;&lt; &quot;Learning C++ is going well.&quot; &lt;&lt; std::endl;\n        outFile.close();\n    }\n\n    std::ifstream inFile(&quot;notes.txt&quot;);    // open for reading\n    std::string line;\n    if (inFile.is_open()) {\n        while (std::getline(inFile, line)) {\n            std::cout &lt;&lt; line &lt;&lt; std::endl;\n        }\n        inFile.close();\n    }\n}<\/code><\/pre>\n<div class=\"callout callout-warning\"><span class=\"callout-label\">WARNING<\/span><p>Always check whether a file actually opened successfully (<code>is_open()<\/code>) before trying to read or write to it. Assuming an external resource &mdash; a file, a network connection, user input &mdash; will always behave as expected is one of the most common sources of bugs in real-world software.<\/p><\/div>"}, {"id": "next-steps", "title": "Where to Go Next", "category": "Beyond the Basics", "body": "<p>You've now covered the conceptual core of software engineering: how computers represent and store data, how programs control flow and organize logic into functions, how memory works underneath the abstractions, how object-oriented design organizes larger systems, and how to reason about data structures and algorithmic efficiency. That's a genuinely complete foundation &mdash; not a shallow one.<\/p>\n<p>Here's the good news: none of this was C++ trivia. Every idea in this tutorial &mdash; variables and types, control flow, functions, memory and references, classes and objects, recursion, Big-O, data structures, sorting and searching, and coordinating concurrent work &mdash; exists in essentially every general-purpose programming language, just with different syntax and different defaults. Learning a new language from here mostly means learning new <em>notation<\/em> for ideas you already understand.<\/p>\n<p>A suggested path forward:<\/p>\n<ul><li><strong>Pick a language aligned with what you want to build<\/strong> &mdash; Python for data/scripting/general purpose, JavaScript/TypeScript for web, Java or C# for large enterprise systems, Rust or continued C++ for systems programming and performance-critical work, Swift or Kotlin for mobile.<\/li><li><strong>Rebuild small programs from this tutorial in that new language<\/strong> &mdash; a linked list, a binary search, a small class hierarchy. You'll be translating concepts you already understand into new syntax, which is a much easier task than learning both at once.<\/li><li><strong>Practice algorithmic problem solving<\/strong> on a site like LeetCode, HackerRank, or Codewars, applying the Big-O, data structure, and algorithm-design ideas from this tutorial directly.<\/li><li><strong>Build something real<\/strong>, even something small. Concepts solidify permanently once you've used them to solve an actual problem you care about, in a way reading alone never quite achieves.<\/li><\/ul>\n<div class=\"callout callout-tip\"><span class=\"callout-label\">TIP<\/span><p>Come back to this tutorial as a reference whenever a new language's documentation assumes you already know what a hash table is, or what Big-O notation means, or how pass-by-reference works. That's exactly the gap this was built to fill.<\/p><\/div>\n<p>Good luck &mdash; you're better prepared than you probably feel right now.<\/p>"}];
+const CATEGORIES = ["Foundations", "C++ Basics", "Memory & Pointers", "Object-Oriented Programming", "Algorithmic Thinking", "Data Structures", "Algorithms", "Beyond the Basics"];
+const ORDER = CHAPTERS.map(c => c.id);
+const BY_ID = {};
+CHAPTERS.forEach((c,i) => { c.index = i; BY_ID[c.id] = c; });
+
+function escapeHtml(s){
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+
+/* -----------------------------------------------------------------------
+ * fuzzy.js (mattyork/fuzzy, MIT License, https://github.com/mattyork/fuzzy)
+ * Inlined directly rather than loaded from a CDN so search keeps working
+ * in offline / sandboxed preview environments with no network access.
+ * --------------------------------------------------------------------- */
+const fuzzy = (function () {
+  var fuzzy = {};
+  fuzzy.simpleFilter = function (pattern, array) {
+    return array.filter(function (str) { return fuzzy.test(pattern, str); });
+  };
+  fuzzy.test = function (pattern, str) {
+    return fuzzy.match(pattern, str) !== null;
+  };
+  fuzzy.match = function (pattern, str, opts) {
+    opts = opts || {};
+    var patternIdx = 0, result = [], len = str.length, totalScore = 0, currScore = 0,
+        pre = opts.pre || "", post = opts.post || "",
+        compareString = opts.caseSensitive ? str : str.toLowerCase(), ch;
+    pattern = opts.caseSensitive ? pattern : pattern.toLowerCase();
+    for (var idx = 0; idx < len; idx++) {
+      ch = str[idx];
+      if (compareString[idx] === pattern[patternIdx]) {
+        ch = pre + ch + post;
+        patternIdx += 1;
+        currScore += 1 + currScore;
+      } else {
+        currScore = 0;
+      }
+      totalScore += currScore;
+      result[result.length] = ch;
+    }
+    if (patternIdx === pattern.length) {
+      totalScore = (compareString === pattern) ? Infinity : totalScore;
+      return { rendered: result.join(""), score: totalScore };
+    }
+    return null;
+  };
+  fuzzy.filter = function (pattern, arr, opts) {
+    if (!arr || arr.length === 0) return [];
+    if (typeof pattern !== "string") return arr;
+    opts = opts || {};
+    return arr.reduce(function (prev, element, idx, arr) {
+      var str = element;
+      if (opts.extract) str = opts.extract(element);
+      var rendered = fuzzy.match(pattern, str, opts);
+      if (rendered != null) {
+        prev[prev.length] = { string: rendered.rendered, score: rendered.score, index: idx, original: element };
+      }
+      return prev;
+    }, []).sort(function (a, b) {
+      var compare = b.score - a.score;
+      if (compare) return compare;
+      return a.index - b.index;
+    });
+  };
+  return fuzzy;
+})();
+
+/* -----------------------------------------------------------------------
+ * Tiny inline C++ syntax highlighter (no external library needed either).
+ * --------------------------------------------------------------------- */
+const CPP_KEYWORDS = new Set("int double float char bool void long short unsigned signed const static virtual override public private protected class struct namespace using template typename return if else for while do switch case default break continue new delete nullptr true false this sizeof auto typedef enum union friend inline explicit operator try catch throw".split(" "));
+const CPP_TYPES = new Set("std string vector map unordered_map unordered_set set queue stack pair thread mutex lock_guard runtime_error ifstream ofstream cout cin endl size_t".split(" "));
+
+function highlightCpp(code){
+  const pattern = /(\/\/[^\n]*)|(\/\*[\s\S]*?\*\/)|(#[a-zA-Z_]\w*(?:[^\n\\]|\\.)*)|("(?:\\.|[^"\\\n])*")|('(?:\\.|[^'\\\n])*')|(\b\d+\.?\d*[fFuUlL]*\b)|(\b[a-zA-Z_]\w*\b)/g;
+  let out = "", last = 0, m;
+  while ((m = pattern.exec(code)) !== null){
+    out += escapeHtml(code.slice(last, m.index));
+    last = pattern.lastIndex;
+    const text = m[0];
+    if (m[1] || m[2]) out += '<span class="cpp-com">' + escapeHtml(text) + '</span>';
+    else if (m[3]) out += '<span class="cpp-pre">' + escapeHtml(text) + '</span>';
+    else if (m[4] || m[5]) out += '<span class="cpp-str">' + escapeHtml(text) + '</span>';
+    else if (m[6]) out += '<span class="cpp-num">' + escapeHtml(text) + '</span>';
+    else if (m[7]){
+      const word = text;
+      if (CPP_KEYWORDS.has(word)) out += '<span class="cpp-kw">' + escapeHtml(word) + '</span>';
+      else if (CPP_TYPES.has(word)) out += '<span class="cpp-type">' + escapeHtml(word) + '</span>';
+      else if (code[pattern.lastIndex] === "(") out += '<span class="cpp-fn">' + escapeHtml(word) + '</span>';
+      else out += escapeHtml(word);
+    }
+  }
+  out += escapeHtml(code.slice(last));
+  return out;
+}
+
+const VISITED_KEY = "cs-foundations-visited";
+function getVisited(){
+  try { return JSON.parse(localStorage.getItem(VISITED_KEY) || "[]"); }
+  catch(e){ return []; }
+}
+function markVisited(id){
+  const v = new Set(getVisited());
+  v.add(id);
+  try { localStorage.setItem(VISITED_KEY, JSON.stringify([...v])); } catch(e){}
+  updateProgress();
+}
+function updateProgress(){
+  const v = getVisited();
+  const pct = Math.round((v.length / CHAPTERS.length) * 100);
+  document.getElementById("progress-fill").style.width = pct + "%";
+  document.getElementById("progress-label").textContent = v.length + " of " + CHAPTERS.length + " chapters read";
+}
+
+// ---------------- sidebar ----------------
+function buildSidebar(){
+  const toc = document.getElementById("toc");
+  toc.innerHTML = "";
+  CATEGORIES.forEach(cat => {
+    const wrap = document.createElement("div");
+    wrap.className = "toc-category";
+    const label = document.createElement("div");
+    label.className = "toc-category-label";
+    label.textContent = cat;
+    wrap.appendChild(label);
+
+    CHAPTERS.filter(c => c.category === cat).forEach(c => {
+      const link = document.createElement("div");
+      link.className = "toc-link";
+      link.dataset.id = c.id;
+      link.innerHTML = '<span class="toc-dot"></span><span>' + c.title + '</span>';
+      link.addEventListener("click", () => { location.hash = c.id; closeSidebarMobile(); });
+      wrap.appendChild(link);
+    });
+    toc.appendChild(wrap);
+  });
+  refreshSidebarState();
+}
+
+function refreshSidebarState(){
+  const visited = new Set(getVisited());
+  const current = currentChapterId();
+  document.querySelectorAll(".toc-link").forEach(el => {
+    const id = el.dataset.id;
+    el.classList.toggle("active", id === current);
+    el.classList.toggle("visited", visited.has(id) && id !== current);
+  });
+  const activeEl = document.querySelector(".toc-link.active");
+  if (activeEl && activeEl.scrollIntoView) activeEl.scrollIntoView({block:"nearest"});
+}
+
+// ---------------- routing / rendering ----------------
+function currentChapterId(){
+  const hash = decodeURIComponent(location.hash.replace(/^#/, ""));
+  return BY_ID[hash] ? hash : ORDER[0];
+}
+
+function renderChapter(){
+  const id = currentChapterId();
+  const c = BY_ID[id];
+  const page = document.getElementById("page");
+
+  const prev = CHAPTERS[c.index - 1];
+  const next = CHAPTERS[c.index + 1];
+
+  let nav = '<div class="pagenav">';
+  if (prev){
+    nav += '<div class="pagenav-btn prev" data-id="'+prev.id+'">' +
+      '<span class="pagenav-dir">&larr; Previous</span>' +
+      '<span class="pagenav-title">'+prev.title+'</span></div>';
+  } else {
+    nav += '<div class="pagenav-spacer"></div>';
+  }
+  if (next){
+    nav += '<div class="pagenav-btn next" data-id="'+next.id+'">' +
+      '<span class="pagenav-dir">Next &rarr;</span>' +
+      '<span class="pagenav-title">'+next.title+'</span></div>';
+  } else {
+    nav += '<div class="pagenav-spacer"></div>';
+  }
+  nav += '</div>';
+
+  page.innerHTML =
+    '<div class="chapter-eyebrow">' + c.category + ' &middot; Chapter ' + (c.index+1) + ' of ' + CHAPTERS.length + '</div>' +
+    '<h1 class="chapter-title">' + c.title + '</h1>' +
+    '<div class="chapter-body">' + c.body + '</div>' +
+    nav;
+
+  page.querySelectorAll(".pagenav-btn[data-id]").forEach(el => {
+    el.addEventListener("click", () => { location.hash = el.dataset.id; });
+  });
+
+  page.querySelectorAll("pre code").forEach(block => {
+    const raw = block.textContent;
+    block.innerHTML = highlightCpp(raw);
+  });
+
+  markVisited(id);
+  refreshSidebarState();
+  if (window.scrollTo) window.scrollTo({top:0, behavior:"instant"});
+  document.title = c.title + " — CS Foundations";
+}
+
+window.addEventListener("hashchange", renderChapter);
+
+// ---------------- search index (built from decoded plain text) ----------------
+const searchIndex = CHAPTERS.map(c => {
+  const tmp = document.createElement("div");
+  tmp.innerHTML = c.body;
+  const plainBody = (tmp.textContent || "").replace(/\s+/g, " ").trim();
+  return { id: c.id, title: c.title, category: c.category, plainBody: plainBody };
+});
+const SEARCH_BY_ID = {};
+searchIndex.forEach(s => { SEARCH_BY_ID[s.id] = s; });
+
+// ---------------- search modal ----------------
+let modalOpen = false;
+let activeModalIndex = -1;
+let currentModalResults = [];
+
+// Body search uses a plain, literal substring match (not fuzzy subsequence
+// matching) -- fuzzy-matching whole paragraphs against a short query finds
+// scattered-letter "matches" almost everywhere and produces noisy results.
+// Fuzzy matching is reserved for titles, which are short enough for it to
+// behave intuitively (typo/abbreviation tolerant chapter-name matching).
+function findBodySubstring(plainBody, query){
+  const q = query.trim().toLowerCase();
+  if (!q) return -1;
+  return plainBody.toLowerCase().indexOf(q);
+}
+
+function snippetFor(plainBody, query, idx){
+  const q = query.trim();
+  const start = Math.max(0, idx - 40);
+  const end = Math.min(plainBody.length, idx + q.length + 100);
+  const prefix = start > 0 ? "…" : "";
+  const suffix = end < plainBody.length ? "…" : "";
+  return escapeHtml(prefix) +
+    escapeHtml(plainBody.slice(start, idx)) +
+    "<mark>" + escapeHtml(plainBody.slice(idx, idx + q.length)) + "</mark>" +
+    escapeHtml(plainBody.slice(idx + q.length, end)) +
+    escapeHtml(suffix);
+}
+
+function bodySubstringMatches(query){
+  const matches = [];
+  searchIndex.forEach(s => {
+    const idx = findBodySubstring(s.plainBody, query);
+    if (idx !== -1) matches.push({ original: s, idx: idx });
+  });
+  matches.sort((a, b) => a.idx - b.idx);   // earlier occurrence ranks higher
+  return matches;
+}
+
+function resultItemHtml(c, titleHtml, idx, snippetHtml){
+  return '<div class="result-item" data-idx="'+idx+'" data-id="'+c.id+'">' +
+    '<div class="result-title">' + titleHtml + '</div>' +
+    '<div class="result-meta">' + c.category + '</div>' +
+    (snippetHtml || "") +
+    '</div>';
+}
+
+function renderModalResults(query){
+  const container = document.getElementById("modal-results");
+  query = query.trim();
+  activeModalIndex = -1;
+
+  if (!query){
+    const defaults = CHAPTERS.slice(0, 8);
+    currentModalResults = defaults.map(c => ({ original: c }));
+    container.innerHTML = '<div class="modal-section-label">Jump to a chapter</div>' +
+      defaults.map((c, i) => resultItemHtml(c, escapeHtml(c.title), i)).join("");
+    wireModalResultClicks();
+    return;
+  }
+
+  const titleMatches = fuzzy.filter(query, searchIndex, { extract: el => el.title, pre: "<mark>", post: "</mark>" });
+  const seen = new Set(titleMatches.map(m => m.original.id));
+  const bodyMatches = bodySubstringMatches(query).filter(m => !seen.has(m.original.id));
+
+  const combined = titleMatches.concat(bodyMatches).slice(0, 8);
+  currentModalResults = combined;
+
+  if (combined.length === 0){
+    container.innerHTML = '<div class="modal-empty">No chapters match &ldquo;' + escapeHtml(query) + '&rdquo;</div>';
+    return;
+  }
+
+  container.innerHTML = '<div class="modal-section-label">' + combined.length + ' result' + (combined.length === 1 ? "" : "s") + '</div>' +
+    combined.map((m, i) => {
+      const c = BY_ID[m.original.id];
+      const isTitleMatch = titleMatches.indexOf(m) !== -1;
+      const titleHtml = isTitleMatch ? m.string : escapeHtml(c.title);
+      // only show a body snippet when the query literally occurs in the body --
+      // avoids showing an unrelated, unhighlighted excerpt for title-only matches
+      const bodyIdx = findBodySubstring(m.original.plainBody, query);
+      const snippetHtml = bodyIdx !== -1
+        ? '<div class="result-snippet">' + snippetFor(m.original.plainBody, query, bodyIdx) + '</div>'
+        : "";
+      return resultItemHtml(c, titleHtml, i, snippetHtml);
+    }).join("");
+
+  wireModalResultClicks();
+}
+
+function wireModalResultClicks(){
+  document.querySelectorAll("#modal-results .result-item").forEach(el => {
+    el.addEventListener("click", () => selectModalResult(el.dataset.id));
+    el.addEventListener("mouseenter", () => {
+      activeModalIndex = parseInt(el.dataset.idx, 10);
+      highlightModalItem(document.querySelectorAll("#modal-results .result-item"));
+    });
+  });
+}
+
+function highlightModalItem(items){
+  items.forEach(el => el.classList.remove("hi"));
+  const el = items[activeModalIndex];
+  if (el){
+    el.classList.add("hi");
+    if (el.scrollIntoView) el.scrollIntoView({block:"nearest"});
+  }
+}
+
+function selectModalResult(id){
+  location.hash = id;
+  closeModal();
+}
+
+function openModal(){
+  modalOpen = true;
+  const overlay = document.getElementById("search-modal");
+  overlay.classList.add("open");
+  overlay.setAttribute("aria-hidden", "false");
+  const input = document.getElementById("modal-search-input");
+  input.value = "";
+  renderModalResults("");
+  setTimeout(() => input.focus(), 0);
+}
+
+function closeModal(){
+  modalOpen = false;
+  const overlay = document.getElementById("search-modal");
+  overlay.classList.remove("open");
+  overlay.setAttribute("aria-hidden", "true");
+  const input = document.getElementById("modal-search-input");
+  if (input) input.blur();   // release focus so "/" and other shortcuts work again
+}
+
+document.getElementById("search-trigger").addEventListener("click", openModal);
+
+document.getElementById("search-modal").addEventListener("click", (e) => {
+  if (e.target.id === "search-modal") closeModal();
+});
+
+const modalInput = document.getElementById("modal-search-input");
+modalInput.addEventListener("input", (e) => renderModalResults(e.target.value));
+modalInput.addEventListener("keydown", (e) => {
+  const items = document.querySelectorAll("#modal-results .result-item");
+  if (e.key === "ArrowDown"){
+    e.preventDefault();
+    if (!items.length) return;
+    activeModalIndex = Math.min(activeModalIndex + 1, items.length - 1);
+    highlightModalItem(items);
+  } else if (e.key === "ArrowUp"){
+    e.preventDefault();
+    if (!items.length) return;
+    activeModalIndex = Math.max(activeModalIndex - 1, 0);
+    highlightModalItem(items);
+  } else if (e.key === "Enter"){
+    e.preventDefault();
+    const idx = activeModalIndex >= 0 ? activeModalIndex : 0;
+    if (currentModalResults[idx]) selectModalResult(currentModalResults[idx].original.id);
+  } else if (e.key === "Escape"){
+    closeModal();
+  }
+});
+
+document.addEventListener("keydown", (e) => {
+  if (modalOpen){
+    if (e.key === "Escape") closeModal();
+    return;
+  }
+  const tag = (document.activeElement && document.activeElement.tagName || "").toLowerCase();
+  const typing = tag === "input" || tag === "textarea";
+  if (e.key === "/" && !typing){
+    e.preventDefault();
+    openModal();
+  } else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k"){
+    e.preventDefault();
+    openModal();
+  }
+});
+
+// ---------------- mobile sidebar ----------------
+function closeSidebarMobile(){ document.body.classList.remove("sidebar-open"); }
+document.getElementById("menu-toggle").addEventListener("click", () => {
+  document.body.classList.toggle("sidebar-open");
+});
+document.body.addEventListener("click", (e) => {
+  if (document.body.classList.contains("sidebar-open") &&
+      !e.target.closest("#sidebar") && !e.target.closest("#menu-toggle")){
+    closeSidebarMobile();
+  }
+});
+
+// ---------------- init ----------------
+buildSidebar();
+updateProgress();
+if (!location.hash) location.hash = ORDER[0];
+renderChapter();
+</script>
+</body>
+</html>
